@@ -135,3 +135,9 @@ dmypy.json
 # Home Assistant configuration
 config/*
 !config/configuration.yaml
+
+# rumdl
+.rumdl_cache
+
+# ruff
+.ruff_cache
