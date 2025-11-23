@@ -67,7 +67,7 @@ The `adaptive_lighting.manual_control` event is fired when a light is marked as 
     - [:spider_web: Zigbee, Z-Wave, and Other Mesh Networks](#spider_web-zigbee-z-wave-and-other-mesh-networks)
     - [:rainbow: Light Colors Not Matching](#rainbow-light-colors-not-matching)
     - [:bulb: Bulb-Specific Issues](#bulb-bulb-specific-issues)
-- [:bar_chart: Graphs!](#bar_chart-graphs)
+- [:bar_chart: Graphs](#bar_chart-graphs)
   - [:sunny: Sun Position](#sunny-sun-position)
   - [:thermometer: Color Temperature](#thermometer-color-temperature)
   - [:high_brightness: Brightness](#high_brightness-brightness)
