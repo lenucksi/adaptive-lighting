@@ -1,4 +1,6 @@
 name: Sync Main to Master
+permissions:
+  contents: write
 
 on:
   push:
