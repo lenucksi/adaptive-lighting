@@ -1,4 +1,6 @@
 name: Update README.md, strings.json, and services.yaml
+permissions:
+  contents: write
 
 on:
   push:
