@@ -2,7 +2,7 @@
 name: Bug Report
 about: Report a bug in adaptive-lighting.
 title: ''
-labels: kind/bug, kind/feature, need/triage
+labels: kind/bug, need/triage
 assignees: ''
 
 ---
