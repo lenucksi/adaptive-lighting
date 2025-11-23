@@ -13,10 +13,13 @@ FROM ghcr.io/astral-sh/uv:debian
 RUN git clone --depth 1 --branch dev https://github.com/home-assistant/core.git /core
 
 # Copy the Adaptive Lighting repository
-COPY . /app/
+COPY ./ /app/
 
 # Setup symlinks in core
 RUN ln -s /core /app/core && /app/scripts/setup-symlinks
+
+# Needed for binary parts of dependencies being installed
+RUN apt-get update && apt-get install --no-install-recommends -y python3-dev build-essential gcc && rm -rf /var/lib/apt/lists/*
 
 # Install home-assistant/core dependencies
 RUN mkdir -p /.venv
