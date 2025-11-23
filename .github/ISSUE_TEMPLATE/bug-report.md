@@ -13,7 +13,7 @@ assignees: ''
 
 If you need help with using or configuring Adaptive Lighting, please [open a Q&A discussion thread here](https://github.com/basnijholt/adaptive-lighting/discussions/new?category=q-a) instead.
 
-### Before submitting a bug report, please follow these troubleshooting steps:
+### Before submitting a bug report, please follow these troubleshooting steps
 
 Please confirm that you have completed the following steps:
 
@@ -22,42 +22,40 @@ Please confirm that you have completed the following steps:
 - [ ] (If using Zigbee2MQTT) I have read the [Zigbee2MQTT troubleshooting guide](https://github.com/basnijholt/adaptive-lighting#zigbee2mqtt) in the [README](https://github.com/basnijholt/adaptive-lighting#readme).
 - [ ] I have checked the [V2 Roadmap](https://github.com/basnijholt/adaptive-lighting/discussions/291) and [open issues](https://github.com/basnijholt/adaptive-lighting/issues) to ensure my issue isn't a duplicate.
 
-
-### Required information for bug reports:
+### Required information for bug reports
 
 Please include the following information in your issue.
 
 *Issues missing this information may not be addressed.*
 
-1.  **Debug logs** captured while the issue occurred. [See here for instructions on enabling debug logging](https://github.com/basnijholt/adaptive-lighting#troubleshooting):
+1. **Debug logs** captured while the issue occurred. [See here for instructions on enabling debug logging](https://github.com/basnijholt/adaptive-lighting#troubleshooting):
+
+```text
 
 ```
 
-```
+1. [Your Adaptive Lighting configuration](https://github.com/basnijholt/adaptive-lighting#gear-configuration):
 
-2.  [Your Adaptive Lighting configuration](https://github.com/basnijholt/adaptive-lighting#gear-configuration):
-
-```
+```text
 
 ```
 
-3.  (If using Zigbee2MQTT), provide your configuration files (**remove all personal information before posting**):
-    - `devices.yaml`
-    - `groups.yaml`
-    - `configuration.yaml` ⚠️; **Warning** _**REMOVE ALL of the PERSONAL INFORMATION BELOW before posting**_ ⚠️;
-      - mqtt: `server`:
-      - mqtt: `user`:
-      - mqtt: `password`:
-      - advanced: `pan_id`:
-      - advanced: `network_key`:
-      - anything in `log_syslog` if you use this
-    - Brand and model number of problematic light(s)
-```
+1. (If using Zigbee2MQTT), provide your configuration files (**remove all personal information before posting**):
+   - `devices.yaml`
+   - `groups.yaml`
+   - `configuration.yaml` ⚠️; **Warning** ***REMOVE ALL of the PERSONAL INFORMATION BELOW before posting*** ⚠️;
+     - mqtt: `server`:
+     - mqtt: `user`:
+     - mqtt: `password`:
+     - advanced: `pan_id`:
+     - advanced: `network_key`:
+     - anything in `log_syslog` if you use this
+   - Brand and model number of problematic light(s)
+
+```text
 
 ```
 
-4.  Describe the bug and how to reproduce it:
+1. Describe the bug and how to reproduce it:
 
-
-
-5. Steps to reproduce the behavior:
+2. Steps to reproduce the behavior:
