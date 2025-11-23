@@ -2,9 +2,15 @@
 set -ex
 cd "$(dirname "$0")/.."
 
+# mypy-dev alpha versions get removed from PyPI when newer alphas are released.
+# Replace unavailable versions with the latest available in that minor series.
 if grep -q 'mypy-dev==1.14.0a3' core/requirements_test.txt; then
-    # mypy-dev==1.14.0a3 seems to not be available anymore, HA 2024.12 is affected
+    # HA 2024.12 is affected
     sed -i 's/mypy-dev==1.14.0a3/mypy-dev==1.14.0a7/' core/requirements_test.txt
+fi
+if grep -q 'mypy-dev==1.16.0a8' core/requirements_test.txt; then
+    # HA 2025.5.x and 2025.6.x are affected
+    sed -i 's/mypy-dev==1.16.0a8/mypy-dev==1.16.0a9/' core/requirements_test.txt
 fi
 
 uv pip install -r core/requirements.txt
