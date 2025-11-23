@@ -8,9 +8,10 @@ if grep -q 'mypy-dev==1.14.0a3' core/requirements_test.txt; then
     # HA 2024.12 is affected
     sed -i 's/mypy-dev==1.14.0a3/mypy-dev==1.14.0a7/' core/requirements_test.txt
 fi
-if grep -q 'mypy-dev==1.16.0a8' core/requirements_test.txt; then
-    # HA 2025.5.x and 2025.6.x are affected
-    sed -i 's/mypy-dev==1.16.0a8/mypy-dev==1.16.0a9/' core/requirements_test.txt
+# Replace any unavailable 1.16.x alpha with 1.16.0a9 (the only one still on PyPI)
+# Affects HA 2025.2.x through 2025.6.x
+if grep -qE 'mypy-dev==1\.16\.0a[1-8]' core/requirements_test.txt; then
+    sed -i -E 's/mypy-dev==1\.16\.0a[1-8]/mypy-dev==1.16.0a9/' core/requirements_test.txt
 fi
 
 uv pip install -r core/requirements.txt

@@ -82,7 +82,14 @@ from homeassistant.components.light import (
 )
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
-from homeassistant.components.template.light import LightTemplate
+
+# LightTemplate was renamed to StateLightEntity in HA 2025.8
+try:
+    from homeassistant.components.template.light import LightTemplate
+except ImportError:
+    from homeassistant.components.template.light import (
+        StateLightEntity as LightTemplate,
+    )
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import (
     ATTR_AREA_ID,
