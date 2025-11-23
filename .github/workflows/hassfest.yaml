@@ -14,4 +14,6 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v6.0.0"
-      - uses: home-assistant/actions/hassfest@1.0.0
+      # NOTE: Pinned to commit SHA because HA doesn't publish version tags (v1.0.0 is from 2020)
+      # Update periodically from: https://github.com/home-assistant/actions/commits/master
+      - uses: home-assistant/actions/hassfest@01a62fa0b7ab4a0ac894184f48a82477812dca4b # master
