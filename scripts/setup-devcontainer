@@ -7,10 +7,20 @@ if [[ ! -d "core" ]]; then
     git clone --depth 1 --branch dev https://github.com/home-assistant/core.git
 fi
 
+# Dev tools für C-Extensions
+sudo apt-get update && sudo apt-get install -y python3-dev build-essential gcc && sudo rm -rf /var/lib/apt/lists/*
+
+# uv Package Manager installieren
+pip install uv
+
 pip install \
     colorlog \
     pip \
     ruff
+
+# Optional: Clean up pip cache
+pip cache purge
+
 
 uv venv --python 3.13
 ./scripts/setup-dependencies
