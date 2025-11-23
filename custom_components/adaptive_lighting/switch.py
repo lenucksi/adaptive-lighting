@@ -75,7 +75,6 @@ from homeassistant.helpers.event import (
 )
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.sun import get_astral_location
-from homeassistant.helpers.template import area_entities
 from homeassistant.util import slugify
 from homeassistant.util.color import (
     color_temperature_to_rgb,
@@ -2210,8 +2209,13 @@ class AdaptiveLightingManager:
         if ATTR_AREA_ID in service_data:
             entity_ids = []
             area_ids = cv.ensure_list_csv(service_data[ATTR_AREA_ID])
+            ent_reg = entity_registry.async_get(self.hass)
             for area_id in area_ids:
-                area_entity_ids = area_entities(self.hass, area_id)
+                # Get entities for area using entity registry (works across all HA versions)
+                area_entity_ids = [
+                    entry.entity_id
+                    for entry in entity_registry.async_entries_for_area(ent_reg, area_id)
+                ]
                 eids = [
                     entity_id
                     for entity_id in area_entity_ids
