@@ -2,20 +2,16 @@
 set -ex
 cd "$(dirname "$0")/.."
 
-# mypy-dev alpha versions get removed from PyPI when newer alphas are released.
-# Replace unavailable versions with the latest available in that minor series.
-if grep -q 'mypy-dev==1.14.0a3' core/requirements_test.txt; then
-    # HA 2024.12 is affected
-    sed -i 's/mypy-dev==1.14.0a3/mypy-dev==1.14.0a7/' core/requirements_test.txt
-fi
-# Replace any unavailable 1.16.x alpha with 1.16.0a9 (the only one still on PyPI)
-# Affects HA 2025.2.x through 2025.6.x
-if grep -qE 'mypy-dev==1\.16\.0a[1-8]' core/requirements_test.txt; then
-    sed -i -E 's/mypy-dev==1\.16\.0a[1-8]/mypy-dev==1.16.0a9/' core/requirements_test.txt
-fi
+# Remove mypy-dev from requirements_test.txt since the maintainer deletes old versions from PyPI.
+# We'll install the latest version separately below.
+# See: https://github.com/cdce8p/mypy-dev/issues/62
+sed -i '/^mypy-dev/d' core/requirements_test.txt
 
 uv pip install -r core/requirements.txt
 uv pip install -r core/requirements_test.txt
 uv pip install -e core/
 uv pip install ulid-transform # this is in Adaptive-lighting's manifest.json
 uv pip install $(python test_dependencies.py)
+
+# Install the latest mypy-dev (not pinned since old versions get deleted from PyPI)
+uv pip install --upgrade mypy-dev
