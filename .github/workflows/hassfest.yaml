@@ -13,7 +13,7 @@ jobs:
   validate_hassfest:
     runs-on: "ubuntu-latest"
     steps:
-      - uses: "actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3" # v6.0.0
+      - uses: "actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8" # v6.0.1
       # NOTE: Pinned to commit SHA because HA doesn't publish version tags (v1.0.0 is from 2020)
       # Update periodically from: https://github.com/home-assistant/actions/commits/master
       - uses: home-assistant/actions/hassfest@6778c32c6da322382854bd824e30fd4a4f3c20e5 # master
