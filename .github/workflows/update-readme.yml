@@ -13,6 +13,8 @@ on:
 jobs:
   update_readme:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Check out code from GitHub
         uses: actions/checkout@v6
