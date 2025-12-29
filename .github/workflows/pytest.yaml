@@ -40,6 +40,8 @@ jobs:
             python-version: "3.13"
           - core-version: "2025.11.3"
             python-version: "3.13"
+          - core-version: "2025.12.5"
+            python-version: "3.13"
           - core-version: "dev"
             python-version: "3.13"
     steps:
