@@ -837,6 +837,8 @@ def _attributes_have_changed(
 
 
 class AdaptiveSwitch(SwitchEntity, RestoreEntity):
+
+    _attr_has_entity_name = False
     """Representation of a Adaptive Lighting switch."""
 
     def __init__(
@@ -1708,6 +1710,8 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
         )
 
 
+
+    _attr_has_entity_name = False
 class SimpleSwitch(SwitchEntity, RestoreEntity):
     """Representation of a Adaptive Lighting switch."""
 
