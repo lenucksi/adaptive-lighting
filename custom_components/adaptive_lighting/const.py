@@ -273,6 +273,13 @@ DEFAULT_RGB_MAX_BRIGHTNESS = 100
 
 CONF_LIGHT_CALIBRATION = "light_calibration"
 DEFAULT_LIGHT_CALIBRATION = {}
+
+CONF_LUX_SENSOR_ENTITY_ID = "lux_sensor_entity_id"
+DEFAULT_LUX_SENSOR_ENTITY_ID = ""
+CONF_LUX_TARGET = "lux_target"
+DEFAULT_LUX_TARGET = 0
+CONF_LUX_BRIGHTNESS_FACTOR = "lux_brightness_factor"
+DEFAULT_LUX_BRIGHTNESS_FACTOR = 5
 DOCS[CONF_RGB_COLOR_TEMP_THRESHOLD] = (
     "Color temperature threshold (Kelvin) below which the light switches from CCT to RGB mode"
     " for very warm colors. Set to 0 to disable. 🔥🌈"
@@ -288,6 +295,15 @@ DOCS[CONF_RGB_MAX_BRIGHTNESS] = (
 DOCS[CONF_LIGHT_CALIBRATION] = (
     "Per-light calibration offsets for color temperature. Dict with light_entity_id →"
     " {anchor_a_temp, anchor_a_offset, anchor_b_temp, anchor_b_offset}. 🔧"
+)
+DOCS[CONF_LUX_SENSOR_ENTITY_ID] = (
+    "Entity ID of a lux/illuminance sensor to use for brightness adjustment. 💡"
+)
+DOCS[CONF_LUX_TARGET] = (
+    "Target lux level for the lux sensor control loop. Set to 0 to disable. 🎯"
+)
+DOCS[CONF_LUX_BRIGHTNESS_FACTOR] = (
+    "Conversion factor: how many lux difference per 1% brightness change. 📊"
 )
 DOCS[CONF_MULTI_LIGHT_INTERCEPT] = (
     "Intercept and adapt `light.turn_on` calls that target multiple lights. ➗"
@@ -457,6 +473,9 @@ VALIDATION_TUPLES: list[tuple[str, Any, Any]] = [
     ),
     (CONF_RGB_MAX_BRIGHTNESS, DEFAULT_RGB_MAX_BRIGHTNESS, int_between(1, 100)),
     (CONF_LIGHT_CALIBRATION, DEFAULT_LIGHT_CALIBRATION, dict),
+    (CONF_LUX_SENSOR_ENTITY_ID, DEFAULT_LUX_SENSOR_ENTITY_ID, str),
+    (CONF_LUX_TARGET, DEFAULT_LUX_TARGET, int),
+    (CONF_LUX_BRIGHTNESS_FACTOR, DEFAULT_LUX_BRIGHTNESS_FACTOR, int_between(1, 100)),
     (CONF_INCLUDE_CONFIG_IN_ATTRIBUTES, DEFAULT_INCLUDE_CONFIG_IN_ATTRIBUTES, bool),
 ]
 

@@ -103,6 +103,9 @@ from .const import (
     CONF_INTERVAL,
     CONF_LIGHT_CALIBRATION,
     CONF_LIGHTS,
+    CONF_LUX_BRIGHTNESS_FACTOR,
+    CONF_LUX_SENSOR_ENTITY_ID,
+    CONF_LUX_TARGET,
     CONF_MANUAL_CONTROL,
     CONF_MAX_BRIGHTNESS,
     CONF_MAX_COLOR_TEMP,
@@ -950,6 +953,15 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
             CONF_LIGHT_CALIBRATION,
             {},
         )
+        self._lux_sensor_entity_id: str = data.get(
+            CONF_LUX_SENSOR_ENTITY_ID,
+            "",
+        )
+        self._lux_target: int = data.get(CONF_LUX_TARGET, 0)
+        self._lux_brightness_factor: int = data.get(
+            CONF_LUX_BRIGHTNESS_FACTOR,
+            5,
+        )
         if not data[CONF_INTERCEPT] and data[CONF_MULTI_LIGHT_INTERCEPT]:
             _LOGGER.warning(
                 "%s: Config mismatch: `multi_light_intercept` set to `true` requires `intercept`"
@@ -1282,6 +1294,7 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
             state = self.hass.states.get(light)
             assert isinstance(state, State)
             attributes = state.attributes
+
             min_kelvin = attributes["min_color_temp_kelvin"]
             max_kelvin = attributes["max_color_temp_kelvin"]
             color_temp_kelvin = self._settings["color_temp_kelvin"]
@@ -1349,6 +1362,29 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
             offset = round(a_off + (b_off - a_off) * progress)
 
         return round(clamp(color_temp_kelvin + offset, min_kelvin, max_kelvin))
+
+    def _apply_lux_adjustment(self) -> None:
+        """Adjust brightness based on lux sensor reading."""
+        if self._lux_target <= 0 or not self._lux_sensor_entity_id:
+            return
+        lux_state = self.hass.states.get(self._lux_sensor_entity_id)
+        if lux_state is None or lux_state.state in ("unknown", "unavailable"):
+            return
+        try:
+            current_lux = float(lux_state.state)
+            deficit = max(0, self._lux_target - current_lux)
+            lux_brightness = round(deficit / self._lux_brightness_factor)
+            self._settings["brightness_pct"] = clamp(
+                lux_brightness,
+                self._sun_light_settings.min_brightness,
+                self._sun_light_settings.max_brightness,
+            )
+        except (ValueError, TypeError):
+            _LOGGER.debug(
+                "%s: Invalid lux sensor value: %s",
+                self._name,
+                lux_state.state,
+            )
 
     async def _adapt_light(
         self,
@@ -1486,6 +1522,7 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
                 transition,
             ),
         )
+        self._apply_lux_adjustment()
         self.async_write_ha_state()
 
         if not force and self._only_once:
