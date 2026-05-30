@@ -1,0 +1,19 @@
+custom_components/adaptive_lighting/quality_scale.yaml
+  s_8695da1112395a::t_ef9d6573caf26e 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "3639a4cc1bf8e91219ddbf3b8365a9b5a3ed0e57",
+  "prompts": {},
+  "sessions": {
+    "s_8695da1112395a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1861ec2cdffeXboYb4xagrD7Ty",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "Lenucksi <lenucksi@users.noreply.github.com>"
+    }
+  }
+}
