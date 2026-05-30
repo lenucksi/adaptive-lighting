@@ -114,6 +114,9 @@ from .const import (
     CONF_MULTI_LIGHT_INTERCEPT,
     CONF_ONLY_ONCE,
     CONF_PREFER_RGB_COLOR,
+    CONF_RGB_BRIGHTNESS_THRESHOLD,
+    CONF_RGB_COLOR_TEMP_THRESHOLD,
+    CONF_RGB_MAX_BRIGHTNESS,
     CONF_SEND_SPLIT_DELAY,
     CONF_SEPARATE_TURN_ON_COMMANDS,
     CONF_SKIP_REDUNDANT_COMMANDS,
@@ -939,6 +942,9 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
         self._skip_redundant_commands = data[CONF_SKIP_REDUNDANT_COMMANDS]
         self._intercept = data[CONF_INTERCEPT]
         self._multi_light_intercept = data[CONF_MULTI_LIGHT_INTERCEPT]
+        self._rgb_color_temp_threshold = data[CONF_RGB_COLOR_TEMP_THRESHOLD]
+        self._rgb_brightness_threshold = data[CONF_RGB_BRIGHTNESS_THRESHOLD]
+        self._rgb_max_brightness = data[CONF_RGB_MAX_BRIGHTNESS]
         if not data[CONF_INTERCEPT] and data[CONF_MULTI_LIGHT_INTERCEPT]:
             _LOGGER.warning(
                 "%s: Config mismatch: `multi_light_intercept` set to `true` requires `intercept`"
@@ -1239,8 +1245,20 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
         if use_transition:
             service_data[ATTR_TRANSITION] = transition
 
+        force_rgb = (
+            self._rgb_color_temp_threshold > 0
+            and "color" in features
+            and self._settings["color_temp_kelvin"] < self._rgb_color_temp_threshold
+            and self._settings["brightness_pct"] <= self._rgb_brightness_threshold
+        )
+
         if "brightness" in features and adapt_brightness:
             brightness = round(255 * self._settings["brightness_pct"] / 100)
+            if force_rgb and self._rgb_max_brightness < 100:
+                max_rgb_brightness = round(
+                    255 * self._rgb_max_brightness / 100,
+                )
+                brightness = min(brightness, max_rgb_brightness)
             service_data[ATTR_BRIGHTNESS] = brightness
 
         sleep_rgb = (
@@ -1253,6 +1271,7 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
             and not (prefer_rgb_color and "color" in features)
             and not (sleep_rgb and "color" in features)
             and not (self._settings["force_rgb_color"] and "color" in features)
+            and not (force_rgb)
         ):
             _LOGGER.debug("%s: Setting color_temp of light %s", self._name, light)
             state = self.hass.states.get(light)
