@@ -1,0 +1,20 @@
+custom_components/adaptive_lighting/switch.py
+  s_3b3f58d9a31650::t_979fafa0c4b036 1366-1387
+  s_3b3f58d9a31650::t_4863f2ebfd121d 957-963
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "4603bb2352ef61018178eff93e1b1ab6caca3dbd",
+  "prompts": {},
+  "sessions": {
+    "s_3b3f58d9a31650": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_18679ac1affe6T4hPWQdpDAexe",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "Lenucksi <lenucksi@users.noreply.github.com>"
+    }
+  }
+}
