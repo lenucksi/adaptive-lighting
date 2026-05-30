@@ -31,7 +31,7 @@ docker run -v ${PWD}:/app basnijholt/adaptive-lighting:latest
   docker run -v %cd%:/app basnijholt/adaptive-lighting:latest
   ```
 
-This command will download the Docker image from [the adaptive-lighting Docker Hub repo](https://hub.docker.com/r/basnijholt/adaptive-lighting) and run the tests.
+This command will download the Docker image from [the adaptive-lighting GHCR repo](https://ghcr.io/basnijholt/adaptive-lighting) and run the tests.
 
 If you prefer to build the image yourself, use the following command:
 
@@ -39,7 +39,7 @@ If you prefer to build the image yourself, use the following command:
 docker build -t basnijholt/adaptive-lighting:latest --no-cache --progress=plain .
 ```
 
-This might be necessary if the image on Docker Hub is outdated or if the [`test_dependencies.py`](../test_dependencies.py) file is updated.
+This might be necessary if the image on GHCR is outdated or if the [`test_dependencies.py`](../test_dependencies.py) file is updated.
 
 ## Passing arguments to pytest
 
