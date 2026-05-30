@@ -101,6 +101,7 @@ from .const import (
     CONF_INITIAL_TRANSITION,
     CONF_INTERCEPT,
     CONF_INTERVAL,
+    CONF_LIGHT_CALIBRATION,
     CONF_LIGHTS,
     CONF_MANUAL_CONTROL,
     CONF_MAX_BRIGHTNESS,
@@ -945,6 +946,10 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
         self._rgb_color_temp_threshold = data[CONF_RGB_COLOR_TEMP_THRESHOLD]
         self._rgb_brightness_threshold = data[CONF_RGB_BRIGHTNESS_THRESHOLD]
         self._rgb_max_brightness = data[CONF_RGB_MAX_BRIGHTNESS]
+        self._light_calibration: dict[str, dict[str, int]] = data.get(
+            CONF_LIGHT_CALIBRATION,
+            {},
+        )
         if not data[CONF_INTERCEPT] and data[CONF_MULTI_LIGHT_INTERCEPT]:
             _LOGGER.warning(
                 "%s: Config mismatch: `multi_light_intercept` set to `true` requires `intercept`"
@@ -1281,7 +1286,13 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
             max_kelvin = attributes["max_color_temp_kelvin"]
             color_temp_kelvin = self._settings["color_temp_kelvin"]
             color_temp_kelvin = clamp(color_temp_kelvin, min_kelvin, max_kelvin)
-            service_data[ATTR_COLOR_TEMP_KELVIN] = color_temp_kelvin
+            service_data[ATTR_COLOR_TEMP_KELVIN] = self._calibrate_color_temp(
+                light,
+                color_temp_kelvin,
+                min_kelvin,
+                max_kelvin,
+                self._light_calibration,
+            )
         elif "color" in features and adapt_color:
             _LOGGER.debug("%s: Setting rgb_color of light %s", self._name, light)
             service_data[ATTR_RGB_COLOR] = self._settings["rgb_color"]
@@ -1310,6 +1321,34 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
             filter_by_state=self._skip_redundant_commands,
             force=force,
         )
+
+    @staticmethod
+    def _calibrate_color_temp(
+        light: str,
+        color_temp_kelvin: float,
+        min_kelvin: float,
+        max_kelvin: float,
+        calibration: dict[str, dict[str, int]],
+    ) -> int:
+        """Apply per-light color temperature calibration offset."""
+        cal = calibration.get(light)
+        if not cal:
+            return round(color_temp_kelvin)
+
+        a_temp = cal["anchor_a_temp"]
+        a_off = cal["anchor_a_offset"]
+        b_temp = cal["anchor_b_temp"]
+        b_off = cal["anchor_b_offset"]
+
+        if color_temp_kelvin <= a_temp:
+            offset = a_off
+        elif color_temp_kelvin >= b_temp:
+            offset = b_off
+        else:
+            progress = (color_temp_kelvin - a_temp) / (b_temp - a_temp)
+            offset = round(a_off + (b_off - a_off) * progress)
+
+        return round(clamp(color_temp_kelvin + offset, min_kelvin, max_kelvin))
 
     async def _adapt_light(
         self,

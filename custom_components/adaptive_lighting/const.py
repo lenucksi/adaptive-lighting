@@ -270,6 +270,9 @@ CONF_RGB_BRIGHTNESS_THRESHOLD = "rgb_brightness_threshold"
 DEFAULT_RGB_BRIGHTNESS_THRESHOLD = 25
 CONF_RGB_MAX_BRIGHTNESS = "rgb_max_brightness"
 DEFAULT_RGB_MAX_BRIGHTNESS = 100
+
+CONF_LIGHT_CALIBRATION = "light_calibration"
+DEFAULT_LIGHT_CALIBRATION = {}
 DOCS[CONF_RGB_COLOR_TEMP_THRESHOLD] = (
     "Color temperature threshold (Kelvin) below which the light switches from CCT to RGB mode"
     " for very warm colors. Set to 0 to disable. 🔥🌈"
@@ -281,6 +284,10 @@ DOCS[CONF_RGB_BRIGHTNESS_THRESHOLD] = (
 DOCS[CONF_RGB_MAX_BRIGHTNESS] = (
     "Maximum brightness percentage when using RGB colors in hybrid mode. RGB LEDs"
     " are typically less bright than white LEDs. 🌈"
+)
+DOCS[CONF_LIGHT_CALIBRATION] = (
+    "Per-light calibration offsets for color temperature. Dict with light_entity_id →"
+    " {anchor_a_temp, anchor_a_offset, anchor_b_temp, anchor_b_offset}. 🔧"
 )
 DOCS[CONF_MULTI_LIGHT_INTERCEPT] = (
     "Intercept and adapt `light.turn_on` calls that target multiple lights. ➗"
@@ -443,8 +450,13 @@ VALIDATION_TUPLES: list[tuple[str, Any, Any]] = [
     (CONF_INTERCEPT, DEFAULT_INTERCEPT, bool),
     (CONF_MULTI_LIGHT_INTERCEPT, DEFAULT_MULTI_LIGHT_INTERCEPT, bool),
     (CONF_RGB_COLOR_TEMP_THRESHOLD, DEFAULT_RGB_COLOR_TEMP_THRESHOLD, int),
-    (CONF_RGB_BRIGHTNESS_THRESHOLD, DEFAULT_RGB_BRIGHTNESS_THRESHOLD, int_between(1, 100)),
+    (
+        CONF_RGB_BRIGHTNESS_THRESHOLD,
+        DEFAULT_RGB_BRIGHTNESS_THRESHOLD,
+        int_between(1, 100),
+    ),
     (CONF_RGB_MAX_BRIGHTNESS, DEFAULT_RGB_MAX_BRIGHTNESS, int_between(1, 100)),
+    (CONF_LIGHT_CALIBRATION, DEFAULT_LIGHT_CALIBRATION, dict),
     (CONF_INCLUDE_CONFIG_IN_ATTRIBUTES, DEFAULT_INCLUDE_CONFIG_IN_ATTRIBUTES, bool),
 ]
 
