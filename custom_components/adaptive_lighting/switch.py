@@ -1271,7 +1271,7 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
 
         if "brightness" in features and adapt_brightness:
             brightness = round(255 * self._settings["brightness_pct"] / 100)
-            if force_rgb and self._rgb_max_brightness < 100:
+            if force_rgb and adapt_color and self._rgb_max_brightness < 100:
                 max_rgb_brightness = round(
                     255 * self._rgb_max_brightness / 100,
                 )

@@ -62,6 +62,7 @@ The `adaptive_lighting.manual_control` event is fired when a light is marked as 
     - [`adaptive_lighting.apply`](#adaptive_lightingapply)
     - [`adaptive_lighting.set_manual_control`](#adaptive_lightingset_manual_control)
     - [`adaptive_lighting.change_switch_settings`](#adaptive_lightingchange_switch_settings)
+    - [`adaptive_lighting.sunrise`](#adaptive_lightingsunrise)
 - [:robot: Automation examples](#robot-automation-examples)
 - [Additional Information](#additional-information)
 - [:sos: Troubleshooting](#sos-troubleshooting)
@@ -247,6 +248,48 @@ The following keys are disallowed:
 | `name`                      | You can rename your switch's display name in Home Assistant's UI.                               |
 | `interval`                  | The interval is used only once when the config loads. A config change and restart are required. |
 <!-- SECTION:change-switch-settings:END -->
+
+<!-- SECTION:sunrise-service:START -->
+#### `adaptive_lighting.sunrise`
+
+`adaptive_lighting.sunrise` runs a configurable sunrise simulation on a set of lights. The sequence goes through three phases:
+
+1. **Sunrise Ramp** — Lights transition from deep red through warm amber to the target color temperature over the configured duration.
+2. **Hold** — Lights are held at max brightness and target color temperature.
+3. **Shutdown** — Lights are gracefully dimmed down and turned off.
+
+> **Manual control**: If a light is manually adjusted during the sunrise sequence (via HA or physically), that light is skipped in subsequent phase steps. The sequence continues for the remaining lights. Turning a light off removes it from the sequence entirely.
+
+| Service data attribute    | Description                                                                                                                                                                                                                                                         | Default | Type       |
+|:--------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------|:-----------|
+| `lights`                  | The light(s) to simulate a sunrise on. 💡                                                                                                                                                                                                                           | ✅      | list       |
+| `sunrise_duration`        | Duration of the sunrise ramp phase in minutes. ⏱️                                                                                                                                                                                                                   | `30`    | `int`      |
+| `sunrise_hold_time`       | Duration to hold lights at peak settings after the ramp, in minutes. ⏸️                                                                                                                                                                                             | `5`     | `int`      |
+| `sunrise_max_brightness`  | Maximum brightness percentage at peak. 🔆                                                                                                                                                                                                                           | `100`   | `int` 1-100 |
+| `sunrise_target_color_temp` | Target color temperature in Kelvin at the end of the ramp. 🌡️                                                                                                                                                                                                     | `4000`  | `int` 1000-10000 |
+| `sunrise_min_color_temp`  | Minimum color temperature at the start of the ramp (used for the CCT phase). 🌡️                                                                                                                                                                                    | `2000`  | `int` 1000-10000 |
+| `sunrise_rgb_threshold`   | Color temperature threshold in Kelvin at which the sequence transitions from RGB warm-up to CCT mode. Lights that support RGB will use warm RGB colors below this threshold and CCT above it. 🌈                                                                    | `2000`  | `int` 1000-10000 |
+| `sunrise_transition`      | Transition time in seconds for each step. Smoother transitions use more gradual changes. 🕑                                                                                                                                                                         | `15`    | `int` 1-300 |
+
+**Example blueprint usage:**
+
+The easiest way to use sunrise simulation is with the companion blueprint. Import it from `blueprints/adaptive_lighting_sunrise.yaml` via **Settings → Automations & Scenes → Blueprints → Import Blueprint**.
+
+**Example direct service call:**
+
+```yaml
+service: adaptive_lighting.sunrise
+data:
+  lights:
+    - light.bedroom_ceiling
+    - light.bedroom_lamp
+  sunrise_duration: 45
+  sunrise_max_brightness: 80
+  sunrise_target_color_temp: 3500
+```
+
+> **Note**: The sunrise sequence operates independently of Adaptive Lighting's regular adaptation cycle. If Adaptive Lighting switches are configured for the same lights, the sunrise sequence's settings take precedence during the sequence. When the sequence completes, normal adaptive behavior resumes.
+<!-- SECTION:sunrise-service:END -->
 
 <!-- SECTION:automation-examples:START -->
 ## :robot: Automation examples

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Callable
 from typing import Any
 
 import voluptuous as vol
@@ -23,7 +24,7 @@ from homeassistant.components.light import (
     DOMAIN as LIGHT_DOMAIN,
 )
 from homeassistant.const import ATTR_ENTITY_ID
-from homeassistant.core import Context, HomeAssistant, ServiceCall, callback
+from homeassistant.core import Context, Event, HomeAssistant, ServiceCall, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.util.color import color_temperature_to_rgb
 
@@ -137,11 +138,41 @@ class SunriseSequence:
         self._lights_data: dict[str, dict[str, Any]] = {}
         self._cancelled = False
         self._task: asyncio.Task | None = None
+        self._manual_lights: set[str] = set()
+        self._unsub_listener: Callable[[], None] | None = None
+
+    @callback
+    def _on_state_changed(self, event: Event) -> None:
+        """Track state changes on lights to detect manual interruptions."""
+        entity_id = event.data.get("entity_id", "")
+        if entity_id not in self.lights:
+            return
+        if entity_id in self._manual_lights:
+            return
+        new_state = event.data.get("new_state")
+        old_state = event.data.get("old_state")
+        if new_state is None or old_state is None:
+            return
+        if new_state.context.id == self.context.id:
+            return
+        self._manual_lights.add(entity_id)
+        _LOGGER.debug(
+            "Light '%s' was manually changed during sunrise sequence,"
+            " moving it to manual_lights set",
+            entity_id,
+        )
+
+    def _remove_listener(self) -> None:
+        """Remove the state_changed event listener."""
+        if self._unsub_listener is not None:
+            self._unsub_listener()
+            self._unsub_listener = None
 
     @callback
     def cancel(self) -> None:
         """Cancel the running sequence."""
         self._cancelled = True
+        self._remove_listener()
         if self._task is not None:
             self._task.cancel()
 
@@ -164,12 +195,18 @@ class SunriseSequence:
 
     async def start(self) -> None:
         """Start the sunrise sequence."""
+        self._unsub_listener = self.hass.bus.async_listen(
+            "state_changed",
+            self._on_state_changed,
+        )
         self._task = asyncio.create_task(self._run())
         try:
             await self._task
         except asyncio.CancelledError:
             _LOGGER.debug("Sunrise sequence cancelled")
             raise
+        finally:
+            self._remove_listener()
 
     async def _run(self) -> None:
         _LOGGER.debug(
@@ -234,6 +271,8 @@ class SunriseSequence:
 
             tasks = []
             for light in self.lights:
+                if light in self._manual_lights:
+                    continue
                 caps = self._lights_data[light]["capabilities"]
                 service_data: dict[str, Any] = {ATTR_ENTITY_ID: light}
 
@@ -292,6 +331,8 @@ class SunriseSequence:
 
         tasks = []
         for light in self.lights:
+            if light in self._manual_lights:
+                continue
             caps = self._lights_data[light]["capabilities"]
             service_data: dict[str, Any] = {
                 ATTR_ENTITY_ID: light,
@@ -339,6 +380,8 @@ class SunriseSequence:
 
             tasks = []
             for light in self.lights:
+                if light in self._manual_lights:
+                    continue
                 caps = self._lights_data[light]["capabilities"]
                 service_data: dict[str, Any] = {
                     ATTR_ENTITY_ID: light,
