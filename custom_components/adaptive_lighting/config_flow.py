@@ -66,7 +66,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            await self.async_set_unique_id(user_input[CONF_NAME])
+            name = user_input.get(CONF_NAME, "")
+            if not name or not name.strip():
+                errors[CONF_NAME] = "invalid_name"
+                return self.async_show_form(
+                    step_id="user",
+                    data_schema=vol.Schema({vol.Required(CONF_NAME): str}),
+                    errors=errors,
+                )
+
+            await self.async_set_unique_id(name)
             self._abort_if_unique_id_configured()
             options = self.source_options
             return self.async_create_entry(
