@@ -16,6 +16,7 @@ import ulid_transform
 import voluptuous as vol
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
+    ATTR_COLOR_TEMP,
     ATTR_COLOR_TEMP_KELVIN,
     ATTR_RGB_COLOR,
     ATTR_SUPPORTED_COLOR_MODES,
@@ -840,6 +841,8 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
 
     _attr_has_entity_name = False
     """Representation of a Adaptive Lighting switch."""
+
+    _attr_has_entity_name = False
 
     def __init__(
         self,
@@ -1715,6 +1718,8 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
 class SimpleSwitch(SwitchEntity, RestoreEntity):
     """Representation of a Adaptive Lighting switch."""
 
+    _attr_has_entity_name = False
+
     def __init__(
         self,
         which: str,
@@ -2209,6 +2214,9 @@ class AdaptiveLightingManager:
         # into its original service call structure which cannot be reliably done due to the
         # lack of a bijective mapping.)
         preprocess_turn_on_alternatives(self.hass, first_service_data)
+        # Remove ATTR_COLOR_TEMP (mired) if present to avoid conflict with
+        # ATTR_COLOR_TEMP_KELVIN added by preprocess_turn_on_alternatives
+        first_service_data.pop(ATTR_COLOR_TEMP, None)
         data[CONF_PARAMS].update(first_service_data)
 
         # Schedule additional service calls for the remaining adaptation data.
