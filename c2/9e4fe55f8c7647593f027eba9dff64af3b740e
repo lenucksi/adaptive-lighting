@@ -1,0 +1,21 @@
+custom_components/adaptive_lighting/__init__.py
+  s_3b3f58d9a31650::t_e9de9427b2d35a 8,10,64-74
+custom_components/adaptive_lighting/config_flow.py
+  s_3b3f58d9a31650::t_e9de9427b2d35a 69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c29e4fe55f8c7647593f027eba9dff64af3b740e",
+  "prompts": {},
+  "sessions": {
+    "s_3b3f58d9a31650": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_18679ac1affe6T4hPWQdpDAexe",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "Lenucksi <lenucksi@users.noreply.github.com>"
+    }
+  }
+}
