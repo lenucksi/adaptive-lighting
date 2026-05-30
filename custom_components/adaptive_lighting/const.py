@@ -58,8 +58,7 @@ DOCS[CONF_INCLUDE_CONFIG_IN_ATTRIBUTES] = (
 
 CONF_INITIAL_TRANSITION, DEFAULT_INITIAL_TRANSITION = "initial_transition", 1
 DOCS[CONF_INITIAL_TRANSITION] = (
-    "Duration of the first transition when lights turn "
-    "from `off` to `on` in seconds. ⏲️"
+    "Duration of the first transition when lights turn from `off` to `on` in seconds. ⏲️"
 )
 
 CONF_SLEEP_TRANSITION, DEFAULT_SLEEP_TRANSITION = "sleep_transition", 1
@@ -152,8 +151,7 @@ DOCS[CONF_MIN_SUNRISE_TIME] = (
 
 CONF_MAX_SUNRISE_TIME = "max_sunrise_time"
 DOCS[CONF_MAX_SUNRISE_TIME] = (
-    "Set the latest virtual sunrise time (HH:MM:SS), allowing"
-    " for earlier sunrises. 🌅"
+    "Set the latest virtual sunrise time (HH:MM:SS), allowing for earlier sunrises. 🌅"
 )
 
 CONF_SUNSET_OFFSET, DEFAULT_SUNSET_OFFSET = "sunset_offset", 0
@@ -291,6 +289,27 @@ CONF_TURN_ON_LIGHTS = "turn_on_lights"
 DOCS[CONF_TURN_ON_LIGHTS] = "Whether to turn on lights that are currently off. 🔆"
 SERVICE_CHANGE_SWITCH_SETTINGS = "change_switch_settings"
 CONF_USE_DEFAULTS = "use_defaults"
+
+SERVICE_SUNRISE = "sunrise"
+CONF_SUNRISE_DURATION, DEFAULT_SUNRISE_DURATION = "sunrise_duration", 30
+CONF_SUNRISE_HOLD_TIME, DEFAULT_SUNRISE_HOLD_TIME = "sunrise_hold_time", 5
+CONF_SUNRISE_MAX_BRIGHTNESS, DEFAULT_SUNRISE_MAX_BRIGHTNESS = (
+    "sunrise_max_brightness",
+    100,
+)
+CONF_SUNRISE_TARGET_COLOR_TEMP, DEFAULT_SUNRISE_TARGET_COLOR_TEMP = (
+    "sunrise_target_color_temp",
+    4000,
+)
+CONF_SUNRISE_MIN_COLOR_TEMP, DEFAULT_SUNRISE_MIN_COLOR_TEMP = (
+    "sunrise_min_color_temp",
+    2000,
+)
+CONF_SUNRISE_RGB_THRESHOLD, DEFAULT_SUNRISE_RGB_THRESHOLD = (
+    "sunrise_rgb_threshold",
+    2000,
+)
+CONF_SUNRISE_TRANSITION, DEFAULT_SUNRISE_TRANSITION = "sunrise_transition", 15
 DOCS[CONF_USE_DEFAULTS] = (
     "Sets the default values not specified in this service call. Options: "
     '"current" (default, retains current values), "factory" (resets to '

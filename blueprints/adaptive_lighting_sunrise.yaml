@@ -1,0 +1,159 @@
+blueprint:
+  name: Adaptive Lighting - Sunrise Simulation
+  description: >
+    Runs a sunrise simulation on selected lights. The lights gradually transition from warm
+    RGB colors (red/orange) through a sunrise spectrum to daylight color temperature, ramping
+    up brightness, holding at max, and then gracefully dimming down.
+
+    This calls the `adaptive_lighting.sunrise` service which handles all the complex
+    lighting orchestration. This blueprint just handles the scheduling.
+  domain: automation
+  source_url: https://github.com/basnijholt/adaptive-lighting/blob/main/blueprints/adaptive_lighting_sunrise.yaml
+  author: Adaptive Lighting Team
+  homeassistant:
+    min_version: 2024.1.0
+
+  input:
+    sunrise_switch:
+      name: Sunrise Switch Entity
+      description: "The Adaptive Lighting switch entity to use as a trigger (optional). If set, the sunrise will start when this switch turns on."
+      selector:
+        entity:
+          domain: switch
+          integration: adaptive_lighting
+      default: {}
+
+    lights:
+      name: Lights
+      description: "Lights to run the sunrise simulation on."
+      selector:
+        entity:
+          domain: light
+          multiple: true
+
+    start_time:
+      name: Start Time
+      description: "Time of day to start the sunrise simulation."
+      default: "06:00:00"
+      selector:
+        time: {}
+
+    duration:
+      name: Sunrise Duration
+      description: "How long the sunrise ramp should take (minutes)."
+      default: 30
+      selector:
+        number:
+          min: 5
+          max: 120
+          unit_of_measurement: minutes
+
+    hold_time:
+      name: Hold Time
+      description: "How long to hold lights at max brightness after sunrise (minutes)."
+      default: 5
+      selector:
+        number:
+          min: 0
+          max: 60
+          unit_of_measurement: minutes
+
+    max_brightness:
+      name: Max Brightness
+      description: "Target brightness percentage at sunrise peak."
+      default: 100
+      selector:
+        number:
+          min: 1
+          max: 100
+          unit_of_measurement: "%"
+
+    target_color_temp:
+      name: Target Color Temperature
+      description: "Target color temperature at sunrise peak (Kelvin)."
+      default: 4000
+      selector:
+        number:
+          min: 1000
+          max: 10000
+          unit_of_measurement: K
+
+    min_color_temp:
+      name: Min Color Temperature
+      description: "Warmest color temperature used (Kelvin)."
+      default: 2000
+      selector:
+        number:
+          min: 1000
+          max: 10000
+          unit_of_measurement: K
+
+    rgb_threshold:
+      name: RGB → CCT Threshold
+      description: "Color temperature threshold for switching from RGB warm-up to CCT mode (Kelvin)."
+      default: 2000
+      selector:
+        number:
+          min: 1000
+          max: 10000
+          unit_of_measurement: K
+
+    days_of_week:
+      name: Days of Week
+      description: "Which days to run the sunrise."
+      default:
+        - mon
+        - tue
+        - wed
+        - thu
+        - fri
+        - sat
+        - sun
+      selector:
+        select:
+          options:
+            - label: Monday
+              value: mon
+            - label: Tuesday
+              value: tue
+            - label: Wednesday
+              value: wed
+            - label: Thursday
+              value: thu
+            - label: Friday
+              value: fri
+            - label: Saturday
+              value: sat
+            - label: Sunday
+              value: sun
+          multiple: true
+
+mode: single
+max_exceeded: silent
+
+trigger:
+  - platform: time
+    at: !input start_time
+
+condition:
+  - condition: or
+    conditions:
+      - condition: state
+        entity_id: !input sunrise_switch
+        state: "on"
+      - condition: template
+        value_template: "{{ sunrise_switch == {} }}"
+  - condition: time
+    weekday:
+      - !input days_of_week
+
+action:
+  - service: adaptive_lighting.sunrise
+    data:
+      lights: !input lights
+      sunrise_duration: !input duration
+      sunrise_hold_time: !input hold_time
+      sunrise_max_brightness: !input max_brightness
+      sunrise_target_color_temp: !input target_color_temp
+      sunrise_min_color_temp: !input min_color_temp
+      sunrise_rgb_threshold: !input rgb_threshold

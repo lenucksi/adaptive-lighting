@@ -156,6 +156,7 @@ from .helpers import (
     remove_vowels,
     short_hash,
 )
+from .sunrise import SunriseSequence
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine, Iterable
@@ -523,6 +524,9 @@ async def async_setup_entry(  # noqa: PLR0915
         service_func=handle_set_manual_control,
         schema=SET_MANUAL_CONTROL_SCHEMA,
     )
+
+    # Register `sunrise` service
+    SunriseSequence.async_register_service(hass)
 
     args: VolDictType = {vol.Optional(CONF_USE_DEFAULTS, default="current"): cv.string}
     # Modifying these after init isn't possible
