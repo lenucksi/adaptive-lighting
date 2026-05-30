@@ -1,0 +1,66 @@
+tests/test_sunrise.py
+  s_3b3f58d9a31650::t_4908c4ea5349ca 4,28-30,35-38,55,60-61,66-67,72-73,78-79,85,94-95,103,112,120,127,154-159,170,173,212-213,223,227-228,239,243,252,269,271-272,274-275,284,286,295-296,306-307,316,330-333
+  s_3b3f58d9a31650::t_fb0f60ffa80b58 1-3,5-27,31-34,39-54,56-59,62-65,68-71,74-77,80-84,86-93,96-102,104-111,113-119,121-126,128-153,160-169,171-172,174-211,214-222,224-226,231-238,240-242,245-251,253-268,270,276-283,285,288-294,298-305,309-315,317-329,334-353
+"backlog/tasks/task-10 - Sunrise-Simulation-Feature.md"
+  ai_agent 1-43
+backlog/config.yml
+  ai_agent 1-14
+"backlog/tasks/task-4 - Manual-Control-System-stabilisieren.md"
+  ai_agent 1-30
+"backlog/tasks/task-11 - RGBCCT-Hybrid-Mode-erweiterter-Temperaturbereich.md"
+  ai_agent 1-40
+.serena/project.yml
+  ai_agent 1-133
+"backlog/tasks/task-13 - Lux-Sensor-Integration.md"
+  ai_agent 1-38
+"backlog/tasks/task-7 - Weitere-Bugs-und-Edge-Cases.md"
+  ai_agent 1-37
+.serena/.gitignore
+  ai_agent 1-2
+"backlog/tasks/task-8 - CI-CD-und-Dev-Infrastruktur.md"
+  ai_agent 1-40
+custom_components/adaptive_lighting/adaptive_lighting
+  ai_agent 1
+patches/0001-fix-use-area_entities-helper-for-complete-device-cov.patch
+  ai_agent 1-37
+"backlog/tasks/task-3 - Race-Conditions-in-separate_turn_on_commands.md"
+  ai_agent 1-30
+"backlog/tasks/task-6 - Proxy-Entity-statt-Intercept.md"
+  ai_agent 1-28
+tests/tests
+  ai_agent 1
+"backlog/tasks/task-1 - Deprecated-Constants-ersetzen.md"
+  ai_agent 1-45
+patches/contrib-20251130-104825/0001-ci-fix-mypy-dev-unavailability-and-extend-HA-Core-te.patch
+  ai_agent 1-293
+"backlog/tasks/task-5 - V2-Roadmap-Items.md"
+  ai_agent 1-29
+tests/test_docs_helpers.py
+  s_3b3f58d9a31650::t_fb0f60ffa80b58 1-119
+"backlog/tasks/task-2 - Bronze-Tier-HA-Integration-Quality-Scale.md"
+  ai_agent 1-55
+custom_components/adaptive_lighting/switch.py
+  s_3b3f58d9a31650::t_fb0f60ffa80b58 19,845-846,1721-1722,2217-2219
+"backlog/tasks/task-12 - Per-Light-Temperature-Correction.md"
+  ai_agent 1-40
+custom_components/adaptive_lighting/color_and_brightness.py
+  s_3b3f58d9a31650::t_fb0f60ffa80b58 286-290,317-321
+"backlog/tasks/task-9 - Upstream-PRs-reviewen-und-mergen.md"
+  ai_agent 1-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b0e28ccad28c63ff3a6e214e98bd7bd8cff3608a",
+  "prompts": {},
+  "sessions": {
+    "s_3b3f58d9a31650": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_18679ac1affe6T4hPWQdpDAexe",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "Lenucksi <lenucksi@users.noreply.github.com>"
+    }
+  }
+}
