@@ -1,0 +1,24 @@
+.github/workflows/validate.yml
+  s_ab631d9ea9d2b9::t_ac053b70cad42c 16
+tests/README.md
+  s_ab631d9ea9d2b9::t_4ba0a7c22f4b3c 42
+  s_ab631d9ea9d2b9::t_babafc8561fdc0 34
+scripts/setup-devcontainer
+  s_ab631d9ea9d2b9::t_54898b64c686b4 18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "d3df5ec4225f7609568760985602cf59e40dff45",
+  "prompts": {},
+  "sessions": {
+    "s_ab631d9ea9d2b9": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_186275e8affettS3unD3cdTIMd",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "Lenucksi <lenucksi@users.noreply.github.com>"
+    }
+  }
+}
