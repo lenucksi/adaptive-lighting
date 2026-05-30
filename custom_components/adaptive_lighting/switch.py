@@ -435,11 +435,6 @@ async def async_setup_entry(  # noqa: PLR0915
     data[config_entry.entry_id][ADAPT_COLOR_SWITCH] = adapt_color_switch
     data[config_entry.entry_id][ADAPT_BRIGHTNESS_SWITCH] = adapt_brightness_switch
     data[config_entry.entry_id][SWITCH_DOMAIN] = switch
-    # runtime_data for forward-looking code
-    config_entry.runtime_data.sleep_mode_switch = sleep_mode_switch
-    config_entry.runtime_data.adapt_color_switch = adapt_color_switch
-    config_entry.runtime_data.adapt_brightness_switch = adapt_brightness_switch
-    config_entry.runtime_data.switch = switch
 
     async_add_entities(
         [sleep_mode_switch, adapt_color_switch, adapt_brightness_switch, switch],

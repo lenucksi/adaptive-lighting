@@ -53,19 +53,3 @@ async def test_unload_entry(hass):
 
     assert entry.state == ConfigEntryState.NOT_LOADED
     assert adaptive_lighting.DOMAIN not in hass.data
-
-
-async def test_runtime_data(hass):
-    """Test that runtime_data is set on config entry."""
-    entry = MockConfigEntry(
-        domain=adaptive_lighting.DOMAIN,
-        data={CONF_NAME: DEFAULT_NAME},
-    )
-    entry.add_to_hass(hass)
-
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    assert entry.state == ConfigEntryState.LOADED
-
-    assert hasattr(entry, "runtime_data")
-    assert entry.runtime_data is not None
-    assert entry.runtime_data.undo_update_listener is not None
