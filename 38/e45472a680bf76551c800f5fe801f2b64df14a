@@ -1,0 +1,22 @@
+custom_components/adaptive_lighting/sunrise.py
+  s_3b3f58d9a31650::t_ccc596772e878e 11
+README.md
+  s_3b3f58d9a31650::t_0bf1c822151c76 65
+  s_3b3f58d9a31650::t_e9a9043ddd65bc 252-293
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "38e45472a680bf76551c800f5fe801f2b64df14a",
+  "prompts": {},
+  "sessions": {
+    "s_3b3f58d9a31650": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_18679ac1affe6T4hPWQdpDAexe",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "Lenucksi <lenucksi@users.noreply.github.com>"
+    }
+  }
+}
