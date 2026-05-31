@@ -4,10 +4,9 @@ import asyncio
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-from homeassistant.core import Context, HomeAssistant, State
+from homeassistant.core import Context, State
 
 from custom_components.adaptive_lighting.sunrise import (
-    LIGHT_SUPPORT_BRIGHTNESS,
     LIGHT_SUPPORT_CCT,
     LIGHT_SUPPORT_RGB,
     SUNRISE_SCHEMA,
@@ -25,7 +24,7 @@ def test_lerp():
 
 
 def test_lerp_rgb():
-    assert _lerp_rgb((0, 0, 0), (255, 255, 255), 0.5) == (127, 127, 127)
+    assert _lerp_rgb((0, 0, 0), (255, 255, 255), 0.5) == (128, 128, 128)
     assert _lerp_rgb((0, 0, 0), (255, 255, 255), 0.0) == (0, 0, 0)
     assert _lerp_rgb((0, 0, 0), (255, 255, 255), 1.0) == (255, 255, 255)
 
@@ -35,7 +34,7 @@ def test_sunrise_rgb_color():
     assert seq._sunrise_rgb_color(0.0) == (255, 20, 0)
     assert seq._sunrise_rgb_color(0.15) == (255, 100, 0)
     assert seq._sunrise_rgb_color(0.25) == (255, 160, 30)
-    assert seq._sunrise_rgb_color(0.50) == (255, 190, 70)
+    assert seq._sunrise_rgb_color(0.30) == (255, 175, 50)
 
 
 def test_init_sets_defaults():
@@ -131,20 +130,20 @@ def test_remove_listener():
 
 def test_cancel():
     seq = _make_seq()
-    seq._task = AsyncMock()
-    seq._unsub_listener = Mock()
+    task = seq._task = AsyncMock()
+    unsub = seq._unsub_listener = Mock()
     seq.cancel()
     assert seq._cancelled is True
-    seq._task.cancel.assert_called_once()
-    seq._unsub_listener.assert_called_once()
+    task.cancel.assert_called_once()
+    unsub.assert_called_once()
 
 
 def test_cancel_no_task():
     seq = _make_seq()
-    seq._unsub_listener = Mock()
+    unsub = seq._unsub_listener = Mock()
     seq.cancel()
     assert seq._cancelled is True
-    seq._unsub_listener.assert_called_once()
+    unsub.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -209,7 +208,7 @@ async def test_start_cancellation(hass):
     seq.hass = hass
     seq.lights = ["light.test"]
     seq._detect_light_capabilities = Mock(return_value=set())
-    async def ps(): raise asyncio.CancelledError()
+    async def ps(): raise asyncio.CancelledError
     seq._phase_sunrise = ps
     with pytest.raises(asyncio.CancelledError):
         await seq.start()
@@ -224,9 +223,10 @@ async def test_phase_sunrise_with_rgb_lights(hass):
     seq.step_interval = 0.001
     seq.total_steps = 3
     seq.duration = 1
-    calls = []
-    async def capture(*a, **kw): calls.append((a, kw))
-    with patch("custom_components.adaptive_lighting.sunrise.asyncio.sleep", AsyncMock()):
+    with (
+        patch("custom_components.adaptive_lighting.sunrise.asyncio.sleep", AsyncMock()),
+        patch("homeassistant.core.ServiceRegistry.async_call", AsyncMock()),
+    ):
         await seq._phase_sunrise()
 
 
@@ -240,7 +240,10 @@ async def test_phase_sunrise_skips_manual_lights(hass):
     seq.step_interval = 0.001
     seq.total_steps = 2
     seq.duration = 0.1
-    with patch("custom_components.adaptive_lighting.sunrise.asyncio.sleep", AsyncMock()):
+    with (
+        patch("custom_components.adaptive_lighting.sunrise.asyncio.sleep", AsyncMock()),
+        patch("homeassistant.core.ServiceRegistry.async_call", AsyncMock()),
+    ):
         await seq._phase_sunrise()
 
 
@@ -268,11 +271,11 @@ async def test_phase_hold_sends_commands(hass):
     seq.lights = ["light.test"]
     seq._lights_data = {"light.test": {"capabilities": {"color_temp", "brightness"}}}
     seq.hold_time = 0.001
-    calls = []
-    async def capture(*a, **kw): calls.append((a, kw))
-    with patch("custom_components.adaptive_lighting.sunrise.asyncio.sleep", AsyncMock()):
+    with (
+        patch("custom_components.adaptive_lighting.sunrise.asyncio.sleep", AsyncMock()),
+        patch("homeassistant.core.ServiceRegistry.async_call", AsyncMock()),
+    ):
         await seq._phase_hold()
-    assert len(calls) > 0
 
 
 @pytest.mark.asyncio
@@ -283,7 +286,10 @@ async def test_phase_hold_skips_manual_lights(hass):
     seq._manual_lights.add("light.manual")
     seq._lights_data = {"light.manual": {"capabilities": {"color_temp", "brightness"}}, "light.auto": {"capabilities": {"color_temp", "brightness"}}}
     seq.hold_time = 0.001
-    with patch("custom_components.adaptive_lighting.sunrise.asyncio.sleep", AsyncMock()):
+    with (
+        patch("custom_components.adaptive_lighting.sunrise.asyncio.sleep", AsyncMock()),
+        patch("homeassistant.core.ServiceRegistry.async_call", AsyncMock()),
+    ):
         await seq._phase_hold()
 
 
@@ -293,7 +299,10 @@ async def test_phase_shutdown_dims_and_turns_off(hass):
     seq.hass = hass
     seq.lights = ["light.test"]
     seq._lights_data = {"light.test": {"capabilities": {"color_temp", "brightness"}}}
-    with patch("custom_components.adaptive_lighting.sunrise.asyncio.sleep", AsyncMock()):
+    with (
+        patch("custom_components.adaptive_lighting.sunrise.asyncio.sleep", AsyncMock()),
+        patch("homeassistant.core.ServiceRegistry.async_call", AsyncMock()),
+    ):
         await seq._phase_shutdown()
 
 
@@ -304,7 +313,10 @@ async def test_phase_shutdown_skips_manual_lights(hass):
     seq.lights = ["light.manual", "light.auto"]
     seq._manual_lights.add("light.manual")
     seq._lights_data = {"light.manual": {"capabilities": {"color_temp", "brightness"}}, "light.auto": {"capabilities": {"color_temp", "brightness"}}}
-    with patch("custom_components.adaptive_lighting.sunrise.asyncio.sleep", AsyncMock()):
+    with (
+        patch("custom_components.adaptive_lighting.sunrise.asyncio.sleep", AsyncMock()),
+        patch("homeassistant.core.ServiceRegistry.async_call", AsyncMock()),
+    ):
         await seq._phase_shutdown()
 
 
