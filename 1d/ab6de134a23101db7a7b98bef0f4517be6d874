@@ -1,0 +1,23 @@
+"backlog/archive/tasks/task-3 - Race-Conditions-in-separate_turn_on_commands.md"
+  s_3b3f58d9a31650::t_3cedc7e8f69bbd 4
+custom_components/adaptive_lighting/switch.py
+  s_3b3f58d9a31650::t_8677fc29736583 497
+  s_3b3f58d9a31650::t_85bc32776c56ec 2322-2325
+  s_3b3f58d9a31650::t_ff3a4b3eb33734 1694,2469-2474,2486-2487
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "1dab6de134a23101db7a7b98bef0f4517be6d874",
+  "prompts": {},
+  "sessions": {
+    "s_3b3f58d9a31650": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_18679ac1affe6T4hPWQdpDAexe",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "Lenucksi <lenucksi@users.noreply.github.com>"
+    }
+  }
+}
