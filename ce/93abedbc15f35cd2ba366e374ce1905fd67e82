@@ -1,0 +1,19 @@
+tests/test_sunrise.py
+  s_3b3f58d9a31650::t_05bcc07d6bc671 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ce93abedbc15f35cd2ba366e374ce1905fd67e82",
+  "prompts": {},
+  "sessions": {
+    "s_3b3f58d9a31650": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_18679ac1affe6T4hPWQdpDAexe",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "Lenucksi <lenucksi@users.noreply.github.com>"
+    }
+  }
+}
