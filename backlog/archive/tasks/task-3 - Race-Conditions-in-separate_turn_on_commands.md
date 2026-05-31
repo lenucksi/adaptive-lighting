@@ -1,7 +1,7 @@
 ---
 id: TASK-3
 title: Race Conditions in separate_turn_on_commands
-status: To Do
+status: Archived
 assignee: []
 created_date: 2026-05-28 22:07
 labels:
@@ -15,7 +15,6 @@ references:
 priority: high
 ordinal: 3000
 ---
-
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->

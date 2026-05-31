@@ -494,6 +494,7 @@ async def async_setup_entry(  # noqa: PLR0915
 
             if manual_attributes:
                 for light in all_lights:
+                    switch.manager.lights.add(light)
                     switch.manager.set_manual_control_attributes(
                         light,
                         manual_attributes,
@@ -1690,7 +1691,7 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
             event,
         )
         # Reset the manually controlled status when the "sleep mode" changes
-        self.manager.reset(*self.lights)
+        self.manager.reset(*self.lights, reset_service_data=False)
         await self._update_attrs_and_maybe_adapt_lights(
             context=self.create_context("sleep", parent=event.context),
             transition=self._sleep_transition,
@@ -2318,6 +2319,10 @@ class AdaptiveLightingManager:
     ) -> None:
         """Set the time after which the lights are automatically reset."""
         if time == 0:
+            for light in lights:
+                self.auto_reset_manual_control_times.pop(light, None)
+                if timer := self.auto_reset_manual_control_timers.pop(light, None):
+                    timer.cancel()
             return
         for light in lights:
             old_time = self.auto_reset_manual_control_times.get(light)
@@ -2461,7 +2466,12 @@ class AdaptiveLightingManager:
             # color_task might be the same as brightness_task
             color_task.cancel()
 
-    def reset(self, *lights: str, reset_manual_control: bool = True) -> None:
+    def reset(
+        self,
+        *lights: str,
+        reset_manual_control: bool = True,
+        reset_service_data: bool = True,
+    ) -> None:
         """Reset the 'manual_control' status of the lights."""
         for light in lights:
             if reset_manual_control:
@@ -2473,7 +2483,8 @@ class AdaptiveLightingManager:
                 if timer := self.auto_reset_manual_control_timers.pop(light, None):
                     timer.cancel()
             self.our_last_state_on_change.pop(light, None)
-            self.last_service_data.pop(light, None)
+            if reset_service_data:
+                self.last_service_data.pop(light, None)
             self.cancel_ongoing_adaptation_calls(light)
 
     def _get_entity_list(self, service_data: ServiceData) -> list[str]:
