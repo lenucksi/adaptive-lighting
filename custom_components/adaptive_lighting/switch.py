@@ -1459,10 +1459,17 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
                 data.context.id,
             )
             light = service_data[ATTR_ENTITY_ID]
-            self.manager.last_service_data[light] = {
-                **self.manager.last_service_data.get(light, {}),
-                **service_data,
-            }
+            if isinstance(light, str):
+                self.manager.last_service_data[light] = {
+                    **self.manager.last_service_data.get(light, {}),
+                    **service_data,
+                }
+            else:
+                for eid in light:
+                    self.manager.last_service_data[eid] = {
+                        **self.manager.last_service_data.get(eid, {}),
+                        **service_data,
+                    }
             await self.hass.services.async_call(
                 LIGHT_DOMAIN,
                 SERVICE_TURN_ON,
@@ -2199,6 +2206,18 @@ class AdaptiveLightingManager:
         if adaptation_data is None:
             return
 
+        if len(entity_ids) > 1 and switch._separate_turn_on_commands:
+            # For multi-light intercept with split commands, all remaining
+            # split calls must target all entity_ids, not just entity_ids[0]
+            _original_generator = adaptation_data.service_call_datas
+
+            async def _multi_entity_generator():
+                async for sd in _original_generator:
+                    sd[ATTR_ENTITY_ID] = entity_ids
+                    yield sd
+
+            adaptation_data.service_call_datas = _multi_entity_generator()
+
         # Take first adaptation item to apply it to this service call
         first_service_data = await adaptation_data.next_service_call_data()
 
@@ -2498,6 +2517,7 @@ class AdaptiveLightingManager:
 
         def off(eid: str, event: Event) -> None:
             self.turn_off_event[eid] = event
+            self.clear_proactively_adapting(eid)
             self.reset(eid)
 
         async def on(eid: str, event: Event) -> None:
