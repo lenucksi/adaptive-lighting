@@ -16,6 +16,6 @@ jobs:
     steps:
       - uses: "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd" # v6
       - name: HACS validation
-        uses: "hacs/action@main"
+        uses: "hacs/action@d556e736723344f83838d08488c983a15381059a" # v22.5.0
         with:
           category: "integration"

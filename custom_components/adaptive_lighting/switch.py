@@ -16,6 +16,7 @@ import ulid_transform
 import voluptuous as vol
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
+    ATTR_COLOR_TEMP,
     ATTR_COLOR_TEMP_KELVIN,
     ATTR_RGB_COLOR,
     ATTR_SUPPORTED_COLOR_MODES,
@@ -101,7 +102,11 @@ from .const import (
     CONF_INITIAL_TRANSITION,
     CONF_INTERCEPT,
     CONF_INTERVAL,
+    CONF_LIGHT_CALIBRATION,
     CONF_LIGHTS,
+    CONF_LUX_BRIGHTNESS_FACTOR,
+    CONF_LUX_SENSOR_ENTITY_ID,
+    CONF_LUX_TARGET,
     CONF_MANUAL_CONTROL,
     CONF_MAX_BRIGHTNESS,
     CONF_MAX_COLOR_TEMP,
@@ -114,6 +119,9 @@ from .const import (
     CONF_MULTI_LIGHT_INTERCEPT,
     CONF_ONLY_ONCE,
     CONF_PREFER_RGB_COLOR,
+    CONF_RGB_BRIGHTNESS_THRESHOLD,
+    CONF_RGB_COLOR_TEMP_THRESHOLD,
+    CONF_RGB_MAX_BRIGHTNESS,
     CONF_SEND_SPLIT_DELAY,
     CONF_SEPARATE_TURN_ON_COMMANDS,
     CONF_SKIP_REDUNDANT_COMMANDS,
@@ -156,6 +164,7 @@ from .helpers import (
     remove_vowels,
     short_hash,
 )
+from .sunrise import SunriseSequence
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine, Iterable
@@ -485,6 +494,7 @@ async def async_setup_entry(  # noqa: PLR0915
 
             if manual_attributes:
                 for light in all_lights:
+                    switch.manager.lights.add(light)
                     switch.manager.set_manual_control_attributes(
                         light,
                         manual_attributes,
@@ -523,6 +533,9 @@ async def async_setup_entry(  # noqa: PLR0915
         service_func=handle_set_manual_control,
         schema=SET_MANUAL_CONTROL_SCHEMA,
     )
+
+    # Register `sunrise` service
+    SunriseSequence.async_register_service(hass)
 
     args: VolDictType = {vol.Optional(CONF_USE_DEFAULTS, default="current"): cv.string}
     # Modifying these after init isn't possible
@@ -826,7 +839,11 @@ def _attributes_have_changed(
 
 
 class AdaptiveSwitch(SwitchEntity, RestoreEntity):
+
+    _attr_has_entity_name = False
     """Representation of a Adaptive Lighting switch."""
+
+    _attr_has_entity_name = False
 
     def __init__(
         self,
@@ -935,6 +952,22 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
         self._skip_redundant_commands = data[CONF_SKIP_REDUNDANT_COMMANDS]
         self._intercept = data[CONF_INTERCEPT]
         self._multi_light_intercept = data[CONF_MULTI_LIGHT_INTERCEPT]
+        self._rgb_color_temp_threshold = data[CONF_RGB_COLOR_TEMP_THRESHOLD]
+        self._rgb_brightness_threshold = data[CONF_RGB_BRIGHTNESS_THRESHOLD]
+        self._rgb_max_brightness = data[CONF_RGB_MAX_BRIGHTNESS]
+        self._light_calibration: dict[str, dict[str, int]] = data.get(
+            CONF_LIGHT_CALIBRATION,
+            {},
+        )
+        self._lux_sensor_entity_id: str = data.get(
+            CONF_LUX_SENSOR_ENTITY_ID,
+            "",
+        )
+        self._lux_target: int = data.get(CONF_LUX_TARGET, 0)
+        self._lux_brightness_factor: int = data.get(
+            CONF_LUX_BRIGHTNESS_FACTOR,
+            5,
+        )
         if not data[CONF_INTERCEPT] and data[CONF_MULTI_LIGHT_INTERCEPT]:
             _LOGGER.warning(
                 "%s: Config mismatch: `multi_light_intercept` set to `true` requires `intercept`"
@@ -1235,8 +1268,20 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
         if use_transition:
             service_data[ATTR_TRANSITION] = transition
 
+        force_rgb = (
+            self._rgb_color_temp_threshold > 0
+            and "color" in features
+            and self._settings["color_temp_kelvin"] < self._rgb_color_temp_threshold
+            and self._settings["brightness_pct"] <= self._rgb_brightness_threshold
+        )
+
         if "brightness" in features and adapt_brightness:
             brightness = round(255 * self._settings["brightness_pct"] / 100)
+            if force_rgb and adapt_color and self._rgb_max_brightness < 100:
+                max_rgb_brightness = round(
+                    255 * self._rgb_max_brightness / 100,
+                )
+                brightness = min(brightness, max_rgb_brightness)
             service_data[ATTR_BRIGHTNESS] = brightness
 
         sleep_rgb = (
@@ -1249,16 +1294,24 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
             and not (prefer_rgb_color and "color" in features)
             and not (sleep_rgb and "color" in features)
             and not (self._settings["force_rgb_color"] and "color" in features)
+            and not (force_rgb)
         ):
             _LOGGER.debug("%s: Setting color_temp of light %s", self._name, light)
             state = self.hass.states.get(light)
             assert isinstance(state, State)
             attributes = state.attributes
+
             min_kelvin = attributes["min_color_temp_kelvin"]
             max_kelvin = attributes["max_color_temp_kelvin"]
             color_temp_kelvin = self._settings["color_temp_kelvin"]
             color_temp_kelvin = clamp(color_temp_kelvin, min_kelvin, max_kelvin)
-            service_data[ATTR_COLOR_TEMP_KELVIN] = color_temp_kelvin
+            service_data[ATTR_COLOR_TEMP_KELVIN] = self._calibrate_color_temp(
+                light,
+                color_temp_kelvin,
+                min_kelvin,
+                max_kelvin,
+                self._light_calibration,
+            )
         elif "color" in features and adapt_color:
             _LOGGER.debug("%s: Setting rgb_color of light %s", self._name, light)
             service_data[ATTR_RGB_COLOR] = self._settings["rgb_color"]
@@ -1287,6 +1340,57 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
             filter_by_state=self._skip_redundant_commands,
             force=force,
         )
+
+    @staticmethod
+    def _calibrate_color_temp(
+        light: str,
+        color_temp_kelvin: float,
+        min_kelvin: float,
+        max_kelvin: float,
+        calibration: dict[str, dict[str, int]],
+    ) -> int:
+        """Apply per-light color temperature calibration offset."""
+        cal = calibration.get(light)
+        if not cal:
+            return round(color_temp_kelvin)
+
+        a_temp = cal["anchor_a_temp"]
+        a_off = cal["anchor_a_offset"]
+        b_temp = cal["anchor_b_temp"]
+        b_off = cal["anchor_b_offset"]
+
+        if color_temp_kelvin <= a_temp:
+            offset = a_off
+        elif color_temp_kelvin >= b_temp:
+            offset = b_off
+        else:
+            progress = (color_temp_kelvin - a_temp) / (b_temp - a_temp)
+            offset = round(a_off + (b_off - a_off) * progress)
+
+        return round(clamp(color_temp_kelvin + offset, min_kelvin, max_kelvin))
+
+    def _apply_lux_adjustment(self) -> None:
+        """Adjust brightness based on lux sensor reading."""
+        if self._lux_target <= 0 or not self._lux_sensor_entity_id:
+            return
+        lux_state = self.hass.states.get(self._lux_sensor_entity_id)
+        if lux_state is None or lux_state.state in ("unknown", "unavailable"):
+            return
+        try:
+            current_lux = float(lux_state.state)
+            deficit = max(0, self._lux_target - current_lux)
+            lux_brightness = round(deficit / self._lux_brightness_factor)
+            self._settings["brightness_pct"] = clamp(
+                lux_brightness,
+                self._sun_light_settings.min_brightness,
+                self._sun_light_settings.max_brightness,
+            )
+        except (ValueError, TypeError):
+            _LOGGER.debug(
+                "%s: Invalid lux sensor value: %s",
+                self._name,
+                lux_state.state,
+            )
 
     async def _adapt_light(
         self,
@@ -1356,7 +1460,17 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
                 data.context.id,
             )
             light = service_data[ATTR_ENTITY_ID]
-            self.manager.last_service_data[light] = service_data
+            if isinstance(light, str):
+                self.manager.last_service_data[light] = {
+                    **self.manager.last_service_data.get(light, {}),
+                    **service_data,
+                }
+            else:
+                for eid in light:
+                    self.manager.last_service_data[eid] = {
+                        **self.manager.last_service_data.get(eid, {}),
+                        **service_data,
+                    }
             await self.hass.services.async_call(
                 LIGHT_DOMAIN,
                 SERVICE_TURN_ON,
@@ -1421,6 +1535,7 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
                 transition,
             ),
         )
+        self._apply_lux_adjustment()
         self.async_write_ha_state()
 
         if not force and self._only_once:
@@ -1545,13 +1660,13 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
                 service_data,
             ):
                 _LOGGER.debug(
-                    "Skipping responding to 'off' → 'on' event for '%s' with context.id='%s' because"
-                    " we only adapt on bare `light.turn_on` events and not on service_data: '%s'",
+                    "Marked attributes from service_data as manually controlled for '%s' "
+                    "with context.id='%s'. Continuing to adapt remaining attributes. "
+                    "service_data: '%s'",
                     entity_id,
                     event.context.id,
                     service_data,
                 )
-                return
 
         if self._adapt_delay > 0:
             await asyncio.sleep(self._adapt_delay)
@@ -1576,7 +1691,7 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
             event,
         )
         # Reset the manually controlled status when the "sleep mode" changes
-        self.manager.reset(*self.lights)
+        self.manager.reset(*self.lights, reset_service_data=False)
         await self._update_attrs_and_maybe_adapt_lights(
             context=self.create_context("sleep", parent=event.context),
             transition=self._sleep_transition,
@@ -1606,8 +1721,12 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
         )
 
 
+
+    _attr_has_entity_name = False
 class SimpleSwitch(SwitchEntity, RestoreEntity):
     """Representation of a Adaptive Lighting switch."""
+
+    _attr_has_entity_name = False
 
     def __init__(
         self,
@@ -2088,6 +2207,18 @@ class AdaptiveLightingManager:
         if adaptation_data is None:
             return
 
+        if len(entity_ids) > 1 and switch._separate_turn_on_commands:
+            # For multi-light intercept with split commands, all remaining
+            # split calls must target all entity_ids, not just entity_ids[0]
+            _original_generator = adaptation_data.service_call_datas
+
+            async def _multi_entity_generator():
+                async for sd in _original_generator:
+                    sd[ATTR_ENTITY_ID] = entity_ids
+                    yield sd
+
+            adaptation_data.service_call_datas = _multi_entity_generator()
+
         # Take first adaptation item to apply it to this service call
         first_service_data = await adaptation_data.next_service_call_data()
 
@@ -2103,6 +2234,9 @@ class AdaptiveLightingManager:
         # into its original service call structure which cannot be reliably done due to the
         # lack of a bijective mapping.)
         preprocess_turn_on_alternatives(self.hass, first_service_data)
+        # Remove ATTR_COLOR_TEMP (mired) if present to avoid conflict with
+        # ATTR_COLOR_TEMP_KELVIN added by preprocess_turn_on_alternatives
+        first_service_data.pop(ATTR_COLOR_TEMP, None)
         data[CONF_PARAMS].update(first_service_data)
 
         # Schedule additional service calls for the remaining adaptation data.
@@ -2185,6 +2319,10 @@ class AdaptiveLightingManager:
     ) -> None:
         """Set the time after which the lights are automatically reset."""
         if time == 0:
+            for light in lights:
+                self.auto_reset_manual_control_times.pop(light, None)
+                if timer := self.auto_reset_manual_control_timers.pop(light, None):
+                    timer.cancel()
             return
         for light in lights:
             old_time = self.auto_reset_manual_control_times.get(light)
@@ -2216,7 +2354,7 @@ class AdaptiveLightingManager:
             "Light %s: Setting manual control attributes to %s (from %s).",
             light,
             attributes,
-            self.manual_control[light],
+            self.get_manual_control_attributes(light),
         )
         self.manual_control[light] = attributes
         delay = self.auto_reset_manual_control_times.get(light)
@@ -2328,7 +2466,12 @@ class AdaptiveLightingManager:
             # color_task might be the same as brightness_task
             color_task.cancel()
 
-    def reset(self, *lights: str, reset_manual_control: bool = True) -> None:
+    def reset(
+        self,
+        *lights: str,
+        reset_manual_control: bool = True,
+        reset_service_data: bool = True,
+    ) -> None:
         """Reset the 'manual_control' status of the lights."""
         for light in lights:
             if reset_manual_control:
@@ -2340,7 +2483,8 @@ class AdaptiveLightingManager:
                 if timer := self.auto_reset_manual_control_timers.pop(light, None):
                     timer.cancel()
             self.our_last_state_on_change.pop(light, None)
-            self.last_service_data.pop(light, None)
+            if reset_service_data:
+                self.last_service_data.pop(light, None)
             self.cancel_ongoing_adaptation_calls(light)
 
     def _get_entity_list(self, service_data: ServiceData) -> list[str]:
@@ -2384,6 +2528,7 @@ class AdaptiveLightingManager:
 
         def off(eid: str, event: Event) -> None:
             self.turn_off_event[eid] = event
+            self.clear_proactively_adapting(eid)
             self.reset(eid)
 
         async def on(eid: str, event: Event) -> None:
@@ -2392,22 +2537,28 @@ class AdaptiveLightingManager:
                 task.cancel()
             self.turn_on_event[eid] = event
 
-            try:
-                switch = _switch_with_lights(
-                    self.hass,
-                    [eid],
-                    expand_light_groups=False,
-                )
-                await self.update_manually_controlled_from_event(
-                    switch,
-                    eid,
-                    force=False,
-                )
-            except NoSwitchFoundError:
-                _LOGGER.debug(
-                    "No switch found for entity_id='%s' in 'on' event listener",
-                    eid,
-                )
+            # Only check for manual control via this path if the light was already ON.
+            # Turning on from OFF is handled separately in _respond_to_off_to_on_event,
+            # where adapt_only_on_bare_turn_on can mark lights as manually controlled.
+            # Fix for https://github.com/basnijholt/adaptive-lighting/issues/1378
+            state = self.hass.states.get(eid)
+            if state is not None and state.state == STATE_ON:
+                try:
+                    switch = _switch_with_lights(
+                        self.hass,
+                        [eid],
+                        expand_light_groups=False,
+                    )
+                    await self.update_manually_controlled_from_event(
+                        switch,
+                        eid,
+                        force=False,
+                    )
+                except NoSwitchFoundError:
+                    _LOGGER.debug(
+                        "No switch found for entity_id='%s' in 'on' event listener",
+                        eid,
+                    )
 
             timer = self.auto_reset_manual_control_timers.get(eid)
             if (
@@ -2709,12 +2860,16 @@ class AdaptiveLightingManager:
             "service",  # adaptive_lighting.apply is allowed to turn on lights
         ):
             _LOGGER.warning(
-                "Detected an 'off' → 'on' event for '%s' with context.id='%s' and"
-                " event='%s', triggered by the adaptive_lighting integration itself,"
+                "Detected an 'off' → 'on' event for '%s' with context.id='%s',"
+                " triggered by the adaptive_lighting integration itself,"
                 " which *should* not happen. If you see this please submit an issue with"
                 " your full logs at https://github.com/basnijholt/adaptive-lighting",
                 entity_id,
                 off_to_on_event.context.id,
+            )
+            _LOGGER.debug(
+                "Full 'off' → 'on' event for '%s': %s",
+                entity_id,
                 off_to_on_event,
             )
         turn_on_event: Event | None = self.turn_on_event.get(entity_id)
@@ -2851,6 +3006,12 @@ class AdaptiveLightingManager:
         entity_id: str,
         service_data: ServiceData,
     ) -> bool:
+        """Mark light as manually controlled if turn_on call has brightness/color attributes.
+
+        This is used by adapt_only_on_bare_turn_on to mark lights as manually controlled
+        when they are turned on with specific attributes (e.g., from a scene).
+        This ensures scenes persist and AL doesn't override them.
+        """
         _LOGGER.debug(
             "_mark_manual_control_if_non_bare_turn_on: entity_id='%s', service_data='%s'",
             entity_id,

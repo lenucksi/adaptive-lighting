@@ -1,0 +1,293 @@
+From d36b443105da770f14381ae55539a2f6e3a3d4d7 Mon Sep 17 00:00:00 2001
+From: Lenucksi <lenucksi@users.noreply.github.com>
+Date: Sun, 23 Nov 2025 23:25:58 +0000
+Subject: [PATCH] ci: fix mypy-dev unavailability and extend HA Core test
+ matrix
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Fix mypy-dev==1.16.0a8 unavailability (replaced with 1.16.0a9)
+- Add HA Core 2025.7.4 through 2025.11.3 to test matrix
+- Update 2025.6.1 to 2025.6.3 (latest patch)
+- Add automated weekly workflow to update test matrix versions
+- Add Python script to fetch latest HA Core versions from GitHub API
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+---
+ .github/workflows/pytest.yaml             |  12 +-
+ .github/workflows/update-test-matrix.yaml |  59 +++++++++
+ scripts/setup-dependencies                |   8 +-
+ scripts/update-test-matrix.py             | 147 ++++++++++++++++++++++
+ 4 files changed, 224 insertions(+), 2 deletions(-)
+ create mode 100644 .github/workflows/update-test-matrix.yaml
+ create mode 100755 scripts/update-test-matrix.py
+
+diff --git a/.github/workflows/pytest.yaml b/.github/workflows/pytest.yaml
+index f39bd64..435d8ff 100644
+--- a/.github/workflows/pytest.yaml
++++ b/.github/workflows/pytest.yaml
+@@ -28,7 +28,17 @@ jobs:
+             python-version: "3.13"
+           - core-version: "2025.5.3"
+             python-version: "3.13"
+-          - core-version: "2025.6.1"
++          - core-version: "2025.6.3"
++            python-version: "3.13"
++          - core-version: "2025.7.4"
++            python-version: "3.13"
++          - core-version: "2025.8.3"
++            python-version: "3.13"
++          - core-version: "2025.9.4"
++            python-version: "3.13"
++          - core-version: "2025.10.4"
++            python-version: "3.13"
++          - core-version: "2025.11.3"
+             python-version: "3.13"
+           - core-version: "dev"
+             python-version: "3.13"
+diff --git a/.github/workflows/update-test-matrix.yaml b/.github/workflows/update-test-matrix.yaml
+new file mode 100644
+index 0000000..658a5c4
+--- /dev/null
++++ b/.github/workflows/update-test-matrix.yaml
+@@ -0,0 +1,59 @@
++name: Update Test Matrix
++
++on:
++  schedule:
++    # Run weekly on Monday at 9:00 UTC
++    - cron: "0 9 * * 1"
++  workflow_dispatch: # Allow manual trigger
++
++permissions:
++  contents: write
++  pull-requests: write
++
++jobs:
++  update-matrix:
++    name: Update HA Core versions in test matrix
++    runs-on: ubuntu-latest
++    steps:
++      - name: Check out code
++        uses: actions/checkout@v4
++
++      - name: Set up Python
++        uses: actions/setup-python@v5
++        with:
++          python-version: "3.12"
++
++      - name: Update test matrix
++        run: python scripts/update-test-matrix.py
++
++      - name: Check for changes
++        id: changes
++        run: |
++          if git diff --quiet .github/workflows/pytest.yaml; then
++            echo "changed=false" >> $GITHUB_OUTPUT
++          else
++            echo "changed=true" >> $GITHUB_OUTPUT
++            echo "Detected changes:"
++            git diff .github/workflows/pytest.yaml
++          fi
++
++      - name: Create Pull Request
++        if: steps.changes.outputs.changed == 'true'
++        uses: peter-evans/create-pull-request@v7
++        with:
++          token: ${{ secrets.GITHUB_TOKEN }}
++          commit-message: "ci: update HA Core test matrix versions"
++          title: "ci: Update Home Assistant Core test matrix"
++          body: |
++            This PR automatically updates the pytest workflow to test against the latest Home Assistant Core versions.
++
++            ## Changes
++            - Updated HA Core versions in the test matrix to include latest patch releases
++
++            ---
++            🤖 Generated automatically by the update-test-matrix workflow
++          branch: update-test-matrix
++          delete-branch: true
++          labels: |
++            automation
++            ci
+diff --git a/scripts/setup-dependencies b/scripts/setup-dependencies
+index b9e2de1..4787172 100755
+--- a/scripts/setup-dependencies
++++ b/scripts/setup-dependencies
+@@ -2,10 +2,16 @@
+ set -ex
+ cd "$(dirname "$0")/.."
+ 
++# mypy-dev alpha versions get removed from PyPI when newer alphas are released.
++# Replace unavailable versions with the latest available in that minor series.
+ if grep -q 'mypy-dev==1.14.0a3' core/requirements_test.txt; then
+-    # mypy-dev==1.14.0a3 seems to not be available anymore, HA 2024.12 is affected
++    # HA 2024.12 is affected
+     sed -i 's/mypy-dev==1.14.0a3/mypy-dev==1.14.0a7/' core/requirements_test.txt
+ fi
++if grep -q 'mypy-dev==1.16.0a8' core/requirements_test.txt; then
++    # HA 2025.5.x and 2025.6.x are affected
++    sed -i 's/mypy-dev==1.16.0a8/mypy-dev==1.16.0a9/' core/requirements_test.txt
++fi
+ 
+ uv pip install -r core/requirements.txt
+ uv pip install -r core/requirements_test.txt
+diff --git a/scripts/update-test-matrix.py b/scripts/update-test-matrix.py
+new file mode 100755
+index 0000000..1d06d99
+--- /dev/null
++++ b/scripts/update-test-matrix.py
+@@ -0,0 +1,147 @@
++#!/usr/bin/env python3
++"""Update the pytest workflow matrix with latest HA Core versions.
++
++This script fetches the latest Home Assistant Core release versions from GitHub
++and updates the pytest workflow matrix to test against them.
++
++Usage:
++    python scripts/update-test-matrix.py
++"""
++
++from __future__ import annotations
++
++import json
++import re
++import urllib.request
++from pathlib import Path
++
++# Minimum HA Core version to include in the test matrix
++# This should be the oldest version we want to support
++MIN_VERSION = (2024, 12)
++
++
++def get_ha_core_versions() -> list[str]:
++    """Fetch latest stable HA Core versions from GitHub API."""
++    all_tags = []
++    page = 1
++
++    # Paginate through all tags to ensure we get older versions too
++    while True:
++        url = f"https://api.github.com/repos/home-assistant/core/tags?per_page=100&page={page}"
++        with urllib.request.urlopen(url) as response:  # noqa: S310
++            tags = json.loads(response.read().decode())
++
++        if not tags:
++            break
++
++        all_tags.extend(tags)
++
++        # Check if we've gone far enough back
++        # Stop if we've found versions older than our minimum
++        oldest_in_page = None
++        for t in tags:
++            if re.match(r"^\d+\.\d+\.\d+$", t["name"]):
++                parts = t["name"].split(".")
++                year, month = int(parts[0]), int(parts[1])
++                if oldest_in_page is None or (year, month) < oldest_in_page:
++                    oldest_in_page = (year, month)
++
++        if oldest_in_page and oldest_in_page < MIN_VERSION:
++            break
++
++        page += 1
++        if page > 10:  # Safety limit
++            break
++
++    # Filter to stable releases only (no beta/rc)
++    stable_pattern = re.compile(r"^\d+\.\d+\.\d+$")
++    versions = [t["name"] for t in all_tags if stable_pattern.match(t["name"])]
++
++    # Group by minor version and get latest patch for each
++    latest: dict[str, str] = {}
++    for version in versions:
++        parts = version.split(".")
++        year, month = int(parts[0]), int(parts[1])
++        # Only include versions >= MIN_VERSION
++        if (year, month) >= MIN_VERSION:
++            minor_key = f"{parts[0]}.{parts[1]}"
++            # Keep the one with highest patch number
++            if minor_key not in latest:
++                latest[minor_key] = version
++            else:
++                current_patch = int(latest[minor_key].split(".")[2])
++                new_patch = int(parts[2])
++                if new_patch > current_patch:
++                    latest[minor_key] = version
++
++    # Sort by version
++    return sorted(latest.values(), key=lambda v: [int(x) for x in v.split(".")])
++
++
++def get_python_version(ha_version: str) -> str:
++    """Determine Python version based on HA Core version."""
++    parts = ha_version.split(".")
++    year, month = int(parts[0]), int(parts[1])
++    # 2024.x and 2025.1 use Python 3.12, 2025.2+ use Python 3.13
++    if year == 2024 or (year == 2025 and month == 1):
++        return "3.12"
++    return "3.13"
++
++
++def generate_matrix_yaml(versions: list[str]) -> str:
++    """Generate the YAML matrix include block."""
++    lines = []
++    for version in versions:
++        python_ver = get_python_version(version)
++        lines.append(f'          - core-version: "{version}"')
++        lines.append(f'            python-version: "{python_ver}"')
++    # Add dev version
++    lines.append('          - core-version: "dev"')
++    lines.append('            python-version: "3.13"')
++    return "\n".join(lines)
++
++
++def update_workflow_file(workflow_path: Path, new_matrix: str) -> bool:
++    """Update the workflow file with new matrix. Returns True if changed."""
++    content = workflow_path.read_text()
++
++    # Pattern to match the matrix include block
++    # Matches from "include:" to just before "    steps:"
++    pattern = re.compile(
++        r"(        include:\n)(.*?)(    steps:)",
++        re.DOTALL,
++    )
++
++    def replacer(match: re.Match) -> str:
++        return f"{match.group(1)}{new_matrix}\n{match.group(3)}"
++
++    new_content = pattern.sub(replacer, content)
++
++    if new_content == content:
++        return False
++
++    workflow_path.write_text(new_content)
++    return True
++
++
++def main() -> None:
++    """Main entry point."""
++    print("Fetching latest HA Core versions...")  # noqa: T201
++    versions = get_ha_core_versions()
++    print(f"Found {len(versions)} versions: {', '.join(versions)}")  # noqa: T201
++
++    print("\nGenerating matrix...")  # noqa: T201
++    matrix = generate_matrix_yaml(versions)
++    print(matrix)  # noqa: T201
++
++    workflow_path = Path(__file__).parent.parent / ".github/workflows/pytest.yaml"
++    print(f"\nUpdating {workflow_path}...")  # noqa: T201
++
++    if update_workflow_file(workflow_path, matrix):
++        print("Workflow updated successfully!")  # noqa: T201
++    else:
++        print("No changes needed.")  # noqa: T201
++
++
++if __name__ == "__main__":
++    main()
+-- 
+2.52.0
+

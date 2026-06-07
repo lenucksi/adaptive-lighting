@@ -49,11 +49,11 @@ jobs:
           - core-version: "2026.3.4"
             python-version: "3.13"
           - core-version: "2026.4.4"
-            python-version: "3.13"
+            python-version: "3.14.2"
           - core-version: "2026.5.4"
-            python-version: "3.13"
+            python-version: "3.14.2"
           - core-version: "dev"
-            python-version: "3.13"
+            python-version: "3.14.2"
     steps:
       - name: Check out code from GitHub
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -75,7 +75,7 @@ jobs:
             -qq \
             --timeout=9 \
             --durations=10 \
-            --cov="homeassistant" \
+            --cov=homeassistant.components.adaptive_lighting \
             --cov-report=xml \
             -o console_output_style=count \
             -p no:sugar \

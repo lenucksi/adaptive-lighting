@@ -58,8 +58,7 @@ DOCS[CONF_INCLUDE_CONFIG_IN_ATTRIBUTES] = (
 
 CONF_INITIAL_TRANSITION, DEFAULT_INITIAL_TRANSITION = "initial_transition", 1
 DOCS[CONF_INITIAL_TRANSITION] = (
-    "Duration of the first transition when lights turn "
-    "from `off` to `on` in seconds. ⏲️"
+    "Duration of the first transition when lights turn from `off` to `on` in seconds. ⏲️"
 )
 
 CONF_SLEEP_TRANSITION, DEFAULT_SLEEP_TRANSITION = "sleep_transition", 1
@@ -95,7 +94,7 @@ CONF_ADAPT_ONLY_ON_BARE_TURN_ON, DEFAULT_ADAPT_ONLY_ON_BARE_TURN_ON = (
 DOCS[CONF_ADAPT_ONLY_ON_BARE_TURN_ON] = (
     "When turning lights on initially. If set to `true`, AL adapts only if `light.turn_on` is "
     "invoked without specifying color or brightness. ❌🌈 "
-    "This e.g., prevents adaptation when activating a scene. "
+    "This e.g., prevents adaptation when activating a scene and marks the light as manually controlled. "
     "If `false`, AL adapts regardless of the presence of color or brightness in the initial `service_data`. "
     "Needs `take_over_control` enabled. 🕵️"
 )
@@ -152,8 +151,7 @@ DOCS[CONF_MIN_SUNRISE_TIME] = (
 
 CONF_MAX_SUNRISE_TIME = "max_sunrise_time"
 DOCS[CONF_MAX_SUNRISE_TIME] = (
-    "Set the latest virtual sunrise time (HH:MM:SS), allowing"
-    " for earlier sunrises. 🌅"
+    "Set the latest virtual sunrise time (HH:MM:SS), allowing for earlier sunrises. 🌅"
 )
 
 CONF_SUNSET_OFFSET, DEFAULT_SUNSET_OFFSET = "sunset_offset", 0
@@ -265,6 +263,48 @@ CONF_MULTI_LIGHT_INTERCEPT, DEFAULT_MULTI_LIGHT_INTERCEPT = (
     "multi_light_intercept",
     True,
 )
+
+CONF_RGB_COLOR_TEMP_THRESHOLD = "rgb_color_temp_threshold"
+DEFAULT_RGB_COLOR_TEMP_THRESHOLD = 0
+CONF_RGB_BRIGHTNESS_THRESHOLD = "rgb_brightness_threshold"
+DEFAULT_RGB_BRIGHTNESS_THRESHOLD = 25
+CONF_RGB_MAX_BRIGHTNESS = "rgb_max_brightness"
+DEFAULT_RGB_MAX_BRIGHTNESS = 100
+
+CONF_LIGHT_CALIBRATION = "light_calibration"
+DEFAULT_LIGHT_CALIBRATION = {}
+
+CONF_LUX_SENSOR_ENTITY_ID = "lux_sensor_entity_id"
+DEFAULT_LUX_SENSOR_ENTITY_ID = ""
+CONF_LUX_TARGET = "lux_target"
+DEFAULT_LUX_TARGET = 0
+CONF_LUX_BRIGHTNESS_FACTOR = "lux_brightness_factor"
+DEFAULT_LUX_BRIGHTNESS_FACTOR = 5
+DOCS[CONF_RGB_COLOR_TEMP_THRESHOLD] = (
+    "Color temperature threshold (Kelvin) below which the light switches from CCT to RGB mode"
+    " for very warm colors. Set to 0 to disable. 🔥🌈"
+)
+DOCS[CONF_RGB_BRIGHTNESS_THRESHOLD] = (
+    "Maximum brightness percentage for RGB mode. When in hybrid RGB mode, brightness"
+    " is capped at this value. 💡"
+)
+DOCS[CONF_RGB_MAX_BRIGHTNESS] = (
+    "Maximum brightness percentage when using RGB colors in hybrid mode. RGB LEDs"
+    " are typically less bright than white LEDs. 🌈"
+)
+DOCS[CONF_LIGHT_CALIBRATION] = (
+    "Per-light calibration offsets for color temperature. Dict with light_entity_id →"
+    " {anchor_a_temp, anchor_a_offset, anchor_b_temp, anchor_b_offset}. 🔧"
+)
+DOCS[CONF_LUX_SENSOR_ENTITY_ID] = (
+    "Entity ID of a lux/illuminance sensor to use for brightness adjustment. 💡"
+)
+DOCS[CONF_LUX_TARGET] = (
+    "Target lux level for the lux sensor control loop. Set to 0 to disable. 🎯"
+)
+DOCS[CONF_LUX_BRIGHTNESS_FACTOR] = (
+    "Conversion factor: how many lux difference per 1% brightness change. 📊"
+)
 DOCS[CONF_MULTI_LIGHT_INTERCEPT] = (
     "Intercept and adapt `light.turn_on` calls that target multiple lights. ➗"
     "⚠️ This might result in splitting up a single `light.turn_on` call "
@@ -291,6 +331,27 @@ CONF_TURN_ON_LIGHTS = "turn_on_lights"
 DOCS[CONF_TURN_ON_LIGHTS] = "Whether to turn on lights that are currently off. 🔆"
 SERVICE_CHANGE_SWITCH_SETTINGS = "change_switch_settings"
 CONF_USE_DEFAULTS = "use_defaults"
+
+SERVICE_SUNRISE = "sunrise"
+CONF_SUNRISE_DURATION, DEFAULT_SUNRISE_DURATION = "sunrise_duration", 30
+CONF_SUNRISE_HOLD_TIME, DEFAULT_SUNRISE_HOLD_TIME = "sunrise_hold_time", 5
+CONF_SUNRISE_MAX_BRIGHTNESS, DEFAULT_SUNRISE_MAX_BRIGHTNESS = (
+    "sunrise_max_brightness",
+    100,
+)
+CONF_SUNRISE_TARGET_COLOR_TEMP, DEFAULT_SUNRISE_TARGET_COLOR_TEMP = (
+    "sunrise_target_color_temp",
+    4000,
+)
+CONF_SUNRISE_MIN_COLOR_TEMP, DEFAULT_SUNRISE_MIN_COLOR_TEMP = (
+    "sunrise_min_color_temp",
+    2000,
+)
+CONF_SUNRISE_RGB_THRESHOLD, DEFAULT_SUNRISE_RGB_THRESHOLD = (
+    "sunrise_rgb_threshold",
+    2000,
+)
+CONF_SUNRISE_TRANSITION, DEFAULT_SUNRISE_TRANSITION = "sunrise_transition", 15
 DOCS[CONF_USE_DEFAULTS] = (
     "Sets the default values not specified in this service call. Options: "
     '"current" (default, retains current values), "factory" (resets to '
@@ -404,6 +465,17 @@ VALIDATION_TUPLES: list[tuple[str, Any, Any]] = [
     ),
     (CONF_INTERCEPT, DEFAULT_INTERCEPT, bool),
     (CONF_MULTI_LIGHT_INTERCEPT, DEFAULT_MULTI_LIGHT_INTERCEPT, bool),
+    (CONF_RGB_COLOR_TEMP_THRESHOLD, DEFAULT_RGB_COLOR_TEMP_THRESHOLD, int),
+    (
+        CONF_RGB_BRIGHTNESS_THRESHOLD,
+        DEFAULT_RGB_BRIGHTNESS_THRESHOLD,
+        int_between(1, 100),
+    ),
+    (CONF_RGB_MAX_BRIGHTNESS, DEFAULT_RGB_MAX_BRIGHTNESS, int_between(1, 100)),
+    (CONF_LIGHT_CALIBRATION, DEFAULT_LIGHT_CALIBRATION, dict),
+    (CONF_LUX_SENSOR_ENTITY_ID, DEFAULT_LUX_SENSOR_ENTITY_ID, str),
+    (CONF_LUX_TARGET, DEFAULT_LUX_TARGET, int),
+    (CONF_LUX_BRIGHTNESS_FACTOR, DEFAULT_LUX_BRIGHTNESS_FACTOR, int_between(1, 100)),
     (CONF_INCLUDE_CONFIG_IN_ATTRIBUTES, DEFAULT_INCLUDE_CONFIG_IN_ATTRIBUTES, bool),
 ]
 

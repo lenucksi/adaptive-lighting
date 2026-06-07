@@ -283,7 +283,11 @@ class SunLightSettings:
         else:
             msg = "Unsupported sun event"
             raise ValueError(msg)
-        return clamp(brightness, self.min_brightness, self.max_brightness)
+        return clamp(
+            brightness,
+            min(self.min_brightness, self.max_brightness),
+            max(self.min_brightness, self.max_brightness),
+        )
 
     def _brightness_pct_linear(self, dt: datetime.datetime) -> float:
         event, ts_event = self.sun.closest_event(dt)
@@ -310,7 +314,11 @@ class SunLightSettings:
         else:
             msg = "Unsupported sun event"
             raise ValueError(msg)
-        return clamp(brightness, self.min_brightness, self.max_brightness)
+        return clamp(
+            brightness,
+            min(self.min_brightness, self.max_brightness),
+            max(self.min_brightness, self.max_brightness),
+        )
 
     def brightness_pct(self, dt: datetime.datetime, is_sleep: bool) -> float | None:
         """Calculate the brightness in %."""

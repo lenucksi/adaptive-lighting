@@ -258,3 +258,70 @@ change_switch_settings:
       example: 0
       selector:
         text: null
+
+sunrise:
+  description: Runs a sunrise simulation on a set of lights. Gradually transitions through warm RGB colors to daylight CCT, simulating a natural sunrise.
+  fields:
+    lights:
+      description: A light (or list of lights) to run the sunrise on. 💡
+      required: true
+      selector:
+        entity:
+          domain: light
+          multiple: true
+    sunrise_duration:
+      description: Total duration of the sunrise ramp in minutes. ⏱️
+      default: 30
+      selector:
+        number:
+          min: 5
+          max: 120
+          unit_of_measurement: minutes
+    sunrise_hold_time:
+      description: Time to hold lights at max brightness after sunrise completes (minutes). ⏸️
+      default: 5
+      selector:
+        number:
+          min: 0
+          max: 120
+          unit_of_measurement: minutes
+    sunrise_max_brightness:
+      description: Maximum brightness percentage at the end of sunrise. 💡
+      default: 100
+      selector:
+        number:
+          min: 1
+          max: 100
+          unit_of_measurement: "%"
+    sunrise_target_color_temp:
+      description: Target color temperature in Kelvin at the end of sunrise. ❄️
+      default: 4000
+      selector:
+        number:
+          min: 1000
+          max: 10000
+          unit_of_measurement: K
+    sunrise_min_color_temp:
+      description: Warmest color temperature used during the CCT phase. 🔥
+      default: 2000
+      selector:
+        number:
+          min: 1000
+          max: 10000
+          unit_of_measurement: K
+    sunrise_rgb_threshold:
+      description: Color temperature threshold for switching from RGB warm colors to CCT mode. 🌈
+      default: 2000
+      selector:
+        number:
+          min: 1000
+          max: 10000
+          unit_of_measurement: K
+    sunrise_transition:
+      description: Transition duration for each lighting change in seconds. 🕑
+      default: 15
+      selector:
+        number:
+          min: 1
+          max: 300
+          unit_of_measurement: seconds
