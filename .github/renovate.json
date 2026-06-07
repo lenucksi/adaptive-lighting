@@ -1,39 +1,51 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    "rebaseWhen": "behind-base-branch",
-    "dependencyDashboard": true,
-    "labels": [
-        "dependencies",
-        "no-stale"
-    ],
-    "commitMessagePrefix": "⬆️",
-    "commitMessageTopic": "{{depName}}",
-    "prBodyDefinitions": {
-        "Release": "yes"
-    },
-    "packageRules": [
-        {
-            "matchManagers": [
-                "github-actions"
-            ],
-            "addLabels": [
-                "github_actions"
-            ],
-            "rangeStrategy": "pin"
-        },
-        {
-            "matchManagers": [
-                "github-actions"
-            ],
-            "matchUpdateTypes": [
-                "minor",
-                "patch"
-            ],
-            "automerge": true
-        }
-    ],
     "extends": [
         "config:recommended",
-        "helpers:pinGitHubActionDigests"
-    ]
+        "helpers:pinGitHubActionsDigests",
+        "docker:pinDigests",
+    ],
+    "rebaseWhen": "behind-base-branch",
+    "dependencyDashboard": true,
+    "labels": ["dependencies", "no-stale"],
+    "commitMessagePrefix": "chore(deps):",
+    "commitMessageAction": "update",
+    "commitMessageTopic": "{{depName}}",
+    "branchConcurrentLimit": 10,
+    "prConcurrentLimit": 10,
+    "prHourlyLimit": 5,
+    "packageRules": [
+        {
+            "description": "Auto-merge all minor, patch, pin, and digest updates",
+            "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+            "automerge": true,
+        },
+        {
+            "description": "Major updates: review manually",
+            "matchUpdateTypes": ["major"],
+            "automerge": false,
+            "labels": ["dependencies", "update-major"],
+        },
+        {
+            "description": "Pin GitHub Actions digests & label",
+            "matchManagers": ["github-actions"],
+            "addLabels": ["github_actions"],
+            "rangeStrategy": "pin",
+        },
+        {
+            "description": "Docker updates: label only",
+            "matchManagers": ["dockerfile"],
+            "addLabels": ["docker"],
+        },
+        {
+            "description": "pre-commit updates: label only",
+            "matchManagers": ["pre-commit"],
+            "addLabels": ["pre-commit"],
+        },
+        {
+            "description": "Python/uv updates: label only",
+            "matchManagers": ["pip_requirements", "uv"],
+            "addLabels": ["python"],
+        },
+    ],
 }
