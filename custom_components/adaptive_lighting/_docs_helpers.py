@@ -54,6 +54,8 @@ def _type_to_str(type_: Any) -> str:  # noqa: PLR0911
         return f"one of `{type_.config['options']}`"
     if isinstance(type_, selector.ColorRGBSelector):
         return "RGB color"
+    if type_ is dict:
+        return "dict"
     msg = f"Unknown type: {type_}"
     raise ValueError(msg)
 

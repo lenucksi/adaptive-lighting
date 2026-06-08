@@ -1,5 +1,6 @@
 """Extracts the dependencies of the components required for testing."""
 
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -8,8 +9,13 @@ components, packages = [], []
 
 requirements = Path("core") / "requirements_test_all.txt"
 
-with requirements.open() as f:
-    lines = f.readlines()
+try:
+    with requirements.open() as f:
+        lines = f.readlines()
+except FileNotFoundError:
+    msg = f"Warning: {requirements} not found, skipping test dependency extraction"
+    print(msg, file=sys.stderr)  # noqa: T201
+    lines = []
 
 for line in lines:
     line = line.strip()  # noqa: PLW2901
