@@ -1,0 +1,23 @@
+custom_components/adaptive_lighting/const.py
+  s_63440ca1e540f2::t_ad5c981d010f89 361-372
+.github/update-services.py
+  s_63440ca1e540f2::t_e5eecdb2a79b6d 20
+zensical.toml
+  s_63440ca1e540f2::t_aedaa4ffe8f1b4 82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "fb78e7a60d53945431000dc8383b52d8bfc9b2d4",
+  "prompts": {},
+  "sessions": {
+    "s_63440ca1e540f2": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_15dff8796ffeKHzGBtl8UdNApJ",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "Lenucksi <lenucksi@users.noreply.github.com>"
+    }
+  }
+}
