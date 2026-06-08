@@ -1,0 +1,23 @@
+test_dependencies.py
+  s_63440ca1e540f2::t_302d1e1e931c24 3
+  s_63440ca1e540f2::t_4fb71a655b00c7 12-16,18
+  s_63440ca1e540f2::t_d85da84a14ebed 17
+custom_components/adaptive_lighting/_docs_helpers.py
+  s_63440ca1e540f2::t_cabc8529aa325f 57-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "1ba04191c9814ac637e30aa6b1523abc8cfb404d",
+  "prompts": {},
+  "sessions": {
+    "s_63440ca1e540f2": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_15dff8796ffeKHzGBtl8UdNApJ",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "Lenucksi <lenucksi@users.noreply.github.com>"
+    }
+  }
+}
