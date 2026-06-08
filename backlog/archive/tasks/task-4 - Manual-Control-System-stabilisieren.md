@@ -1,7 +1,7 @@
 ---
 id: TASK-4
 title: Manual Control System stabilisieren
-status: To Do
+status: Archived
 assignee: []
 created_date: 2026-05-28 22:07
 labels:
@@ -15,7 +15,6 @@ references:
 priority: medium
 ordinal: 4000
 ---
-
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
