@@ -358,6 +358,18 @@ DOCS[CONF_USE_DEFAULTS] = (
     'documented defaults), or "configuration" (reverts to switch config defaults). ⚙️'
 )
 
+DOCS[CONF_SUNRISE_DURATION] = "Total duration of the sunrise ramp in minutes. ⏱️"
+DOCS[CONF_SUNRISE_HOLD_TIME] = (
+    "Time to hold lights at max brightness after sunrise completes (minutes). ⏸️"
+)
+DOCS[CONF_SUNRISE_MAX_BRIGHTNESS] = "Maximum brightness percentage at the end of sunrise. 💡"
+DOCS[CONF_SUNRISE_TARGET_COLOR_TEMP] = "Target color temperature in Kelvin at the end of sunrise. ❄️"
+DOCS[CONF_SUNRISE_MIN_COLOR_TEMP] = "Warmest color temperature used during the CCT phase. 🔥"
+DOCS[CONF_SUNRISE_RGB_THRESHOLD] = (
+    "Color temperature threshold for switching from RGB warm colors to CCT mode. 🌈"
+)
+DOCS[CONF_SUNRISE_TRANSITION] = "Transition duration for each lighting change in seconds. 🕑"
+
 TURNING_OFF_DELAY = 5
 
 DOCS_MANUAL_CONTROL = {
