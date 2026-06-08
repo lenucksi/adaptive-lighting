@@ -101,7 +101,7 @@
           "rgb_color_temp_threshold": "Color temperature threshold (Kelvin) below which the light switches from CCT to RGB mode for very warm colors. Set to 0 to disable. 🔥🌈",
           "rgb_brightness_threshold": "Maximum brightness percentage for RGB mode. When in hybrid RGB mode, brightness is capped at this value. 💡",
           "rgb_max_brightness": "Maximum brightness percentage when using RGB colors in hybrid mode. RGB LEDs are typically less bright than white LEDs. 🌈",
-          "light_calibration": "Per-light calibration offsets for color temperature. Dict with light_entity_id → {anchor_a_temp, anchor_a_offset, anchor_b_temp, anchor_b_offset}. 🔧",
+          "light_calibration": "Per-light calibration offsets for color temperature. Dict with light_entity_id → keys: anchor_a_temp, anchor_a_offset, anchor_b_temp, anchor_b_offset. 🔧",
           "lux_sensor_entity_id": "Entity ID of a lux/illuminance sensor to use for brightness adjustment. 💡",
           "lux_target": "Target lux level for the lux sensor control loop. Set to 0 to disable. 🎯",
           "lux_brightness_factor": "Conversion factor: how many lux difference per 1% brightness change. 📊"

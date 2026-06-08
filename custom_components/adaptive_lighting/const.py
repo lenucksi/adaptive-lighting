@@ -294,7 +294,7 @@ DOCS[CONF_RGB_MAX_BRIGHTNESS] = (
 )
 DOCS[CONF_LIGHT_CALIBRATION] = (
     "Per-light calibration offsets for color temperature. Dict with light_entity_id →"
-    " {anchor_a_temp, anchor_a_offset, anchor_b_temp, anchor_b_offset}. 🔧"
+    " keys: anchor_a_temp, anchor_a_offset, anchor_b_temp, anchor_b_offset. 🔧"
 )
 DOCS[CONF_LUX_SENSOR_ENTITY_ID] = (
     "Entity ID of a lux/illuminance sensor to use for brightness adjustment. 💡"
