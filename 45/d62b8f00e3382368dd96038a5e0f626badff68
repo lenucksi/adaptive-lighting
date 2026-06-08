@@ -1,0 +1,39 @@
+"backlog/tasks/task-6.4 - Wire-proxy-entity-lifecycle-into-AdaptiveLightingManager.md"
+  ai_agent 1-48
+"backlog/tasks/task-5.2 - Split-manual_control-config-into-brightness-and-color-components.md"
+  ai_agent 1-41
+"backlog/tasks/task-6.5 - Remove-interceptor-mechanism-and-ensure-backwards-compatibility.md"
+  ai_agent 1-48
+"backlog/tasks/task-5 - V2-Roadmap-Items.md"
+  s_63440ca1e540f2::t_023ee8072420d0 7,30-63
+"backlog/tasks/task-6 - Proxy-Entity-statt-Intercept.md"
+  s_63440ca1e540f2::t_023ee8072420d0 7,29-87
+"backlog/tasks/task-6.2 - Implement-core-adaptation-merging-in-proxy-async_turn_on.md"
+  ai_agent 1-47
+"backlog/tasks/task-6.3 - Integrate-manual-control-and-feature-detection-with-proxy.md"
+  ai_agent 1-47
+"backlog/tasks/task-5.4 - Add-custom-location-latitude-longitude-timezone-support.md"
+  ai_agent 1-43
+"backlog/tasks/task-5.3 - Split-transition_until_sleep-into-separate-brightness-and-color-booleans.md"
+  ai_agent 1-46
+"backlog/tasks/task-5.1 - Revise-default-configuration-values-for-V2.md"
+  ai_agent 2-3,6-7,9-11,13-15,21,26-43
+"backlog/tasks/task-6.1 - Create-AdaptiveLightProxy-entity-foundation.md"
+  ai_agent 1-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "45d62b8f00e3382368dd96038a5e0f626badff68",
+  "prompts": {},
+  "sessions": {
+    "s_63440ca1e540f2": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_15dff8796ffeKHzGBtl8UdNApJ",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "Lenucksi <lenucksi@users.noreply.github.com>"
+    }
+  }
+}
