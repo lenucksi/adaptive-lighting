@@ -258,12 +258,11 @@ change_switch_settings:
       example: 0
       selector:
         text: null
-
 sunrise:
   description: Runs a sunrise simulation on a set of lights. Gradually transitions through warm RGB colors to daylight CCT, simulating a natural sunrise.
   fields:
     lights:
-      description: A light (or list of lights) to run the sunrise on. 💡
+      description: List of light entity_ids to be controlled (may be empty). 🌟
       required: true
       selector:
         entity:
@@ -292,7 +291,7 @@ sunrise:
         number:
           min: 1
           max: 100
-          unit_of_measurement: "%"
+          unit_of_measurement: '%'
     sunrise_target_color_temp:
       description: Target color temperature in Kelvin at the end of sunrise. ❄️
       default: 4000

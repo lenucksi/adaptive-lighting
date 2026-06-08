@@ -64,6 +64,13 @@
           "skip_redundant_commands": "skip_redundant_commands: Skip sending adaptation commands whose target state already equals the light's known state. Minimizes network traffic and improves the adaptation responsivity in some situations. 📉Disable if physical light states get out of sync with HA's recorded state.",
           "intercept": "intercept: Intercept and adapt `light.turn_on` calls to enabling instantaneous color and brightness adaptation. 🏎️ Disable for lights that do not support `light.turn_on` with color and brightness.",
           "multi_light_intercept": "multi_light_intercept: Intercept and adapt `light.turn_on` calls that target multiple lights. ➗⚠️ This might result in splitting up a single `light.turn_on` call into multiple calls, e.g., when lights are in different switches. Requires `intercept` to be enabled.",
+          "rgb_color_temp_threshold": "rgb_color_temp_threshold",
+          "rgb_brightness_threshold": "rgb_brightness_threshold",
+          "rgb_max_brightness": "rgb_max_brightness",
+          "light_calibration": "light_calibration",
+          "lux_sensor_entity_id": "lux_sensor_entity_id",
+          "lux_target": "lux_target",
+          "lux_brightness_factor": "lux_brightness_factor",
           "include_config_in_attributes": "include_config_in_attributes: Show all options as attributes on the switch in Home Assistant when set to `true`. 📝"
         },
         "data_description": {
@@ -89,7 +96,14 @@
           "take_over_control_mode": "The adaptation pausing mode when other sources change brightness and/or color of lights. `pause_all` always pauses both brightness and color adaptation. `pause_changed` pauses the adaptation of only the changed attributes and continues adapting unchanged attributes, e.g., continues color adaptation when only brightness was changed.",
           "autoreset_control_seconds": "Automatically reset the manual control after a number of seconds. Set to 0 to disable. ⏲️",
           "send_split_delay": "Delay (ms) between `separate_turn_on_commands` for lights that don't support simultaneous brightness and color setting. ⏲️",
-          "adapt_delay": "Wait time (seconds) between light turn on and Adaptive Lighting applying changes. Might help to avoid flickering. ⏲️"
+          "adapt_delay": "Wait time (seconds) between light turn on and Adaptive Lighting applying changes. Might help to avoid flickering. ⏲️",
+          "rgb_color_temp_threshold": "Color temperature threshold (Kelvin) below which the light switches from CCT to RGB mode for very warm colors. Set to 0 to disable. 🔥🌈",
+          "rgb_brightness_threshold": "Maximum brightness percentage for RGB mode. When in hybrid RGB mode, brightness is capped at this value. 💡",
+          "rgb_max_brightness": "Maximum brightness percentage when using RGB colors in hybrid mode. RGB LEDs are typically less bright than white LEDs. 🌈",
+          "light_calibration": "Per-light calibration offsets for color temperature. Dict with light_entity_id → {anchor_a_temp, anchor_a_offset, anchor_b_temp, anchor_b_offset}. 🔧",
+          "lux_sensor_entity_id": "Entity ID of a lux/illuminance sensor to use for brightness adjustment. 💡",
+          "lux_target": "Target lux level for the lux sensor control loop. Set to 0 to disable. 🎯",
+          "lux_brightness_factor": "Conversion factor: how many lux difference per 1% brightness change. 📊"
         }
       }
     },
@@ -274,6 +288,44 @@
         "autoreset_control_seconds": {
           "description": "Automatically reset the manual control after a number of seconds. Set to 0 to disable. ⏲️",
           "name": "autoreset_control_seconds"
+        }
+      }
+    },
+    "sunrise": {
+      "name": "sunrise",
+      "description": "Runs a sunrise simulation on a set of lights. Gradually transitions through warm RGB colors to daylight CCT, simulating a natural sunrise.",
+      "fields": {
+        "lights": {
+          "description": "List of light entity_ids to be controlled (may be empty). 🌟",
+          "name": "lights"
+        },
+        "sunrise_duration": {
+          "description": "Total duration of the sunrise ramp in minutes. ⏱️",
+          "name": "sunrise_duration"
+        },
+        "sunrise_hold_time": {
+          "description": "Time to hold lights at max brightness after sunrise completes (minutes). ⏸️",
+          "name": "sunrise_hold_time"
+        },
+        "sunrise_max_brightness": {
+          "description": "Maximum brightness percentage at the end of sunrise. 💡",
+          "name": "sunrise_max_brightness"
+        },
+        "sunrise_target_color_temp": {
+          "description": "Target color temperature in Kelvin at the end of sunrise. ❄️",
+          "name": "sunrise_target_color_temp"
+        },
+        "sunrise_min_color_temp": {
+          "description": "Warmest color temperature used during the CCT phase. 🔥",
+          "name": "sunrise_min_color_temp"
+        },
+        "sunrise_rgb_threshold": {
+          "description": "Color temperature threshold for switching from RGB warm colors to CCT mode. 🌈",
+          "name": "sunrise_rgb_threshold"
+        },
+        "sunrise_transition": {
+          "description": "Transition duration for each lighting change in seconds. 🕑",
+          "name": "sunrise_transition"
         }
       }
     }
