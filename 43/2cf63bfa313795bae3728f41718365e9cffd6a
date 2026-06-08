@@ -1,0 +1,27 @@
+README.md
+  s_63440ca1e540f2::t_e196a72f6fbfe2 156
+custom_components/adaptive_lighting/translations/en.json
+  s_63440ca1e540f2::t_e196a72f6fbfe2 104
+custom_components/adaptive_lighting/const.py
+  s_63440ca1e540f2::t_26cf84b9233390 297
+docs/configuration.md
+  s_63440ca1e540f2::t_e196a72f6fbfe2 84
+custom_components/adaptive_lighting/strings.json
+  s_63440ca1e540f2::t_e196a72f6fbfe2 103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "432cf63bfa313795bae3728f41718365e9cffd6a",
+  "prompts": {},
+  "sessions": {
+    "s_63440ca1e540f2": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_15dff8796ffeKHzGBtl8UdNApJ",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "Lenucksi <lenucksi@users.noreply.github.com>"
+    }
+  }
+}
